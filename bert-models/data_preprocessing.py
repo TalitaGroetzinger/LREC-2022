@@ -27,9 +27,12 @@ def retrieve_instances_from_dataset(dataset):
     return ids, instances
 
 def merge_data(path_to_instances, path_to_labels): 
-    """
+    """Merge the labels and instances together into one file. 
+
     :param path_to_instances: path to tsv with instances from the dataset 
     :param path_to_labels: path to tsv with labels (classes) form the dataset 
+
+    :return: a dataframe with the following columns: ids, version, label 
     """
 
     merged_df_dict = {"ids": [], "version": [], "label": []}
@@ -57,3 +60,4 @@ def merge_data(path_to_instances, path_to_labels):
     merged_df = pd.DataFrame.from_dict(merged_df_dict)
 
     return merged_df 
+
