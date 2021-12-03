@@ -40,7 +40,7 @@ def check_format_of_submission(submission: pd.DataFrame, subtask: str) -> None:
     else:
         raise ValueError(f"Evaluation mode {subtask} not available.")
 
-    logging.debug("Format checking for submission successful. No problems detected.")
+    logging.debug("Format checking for submission successful. No problems detected.\n")
 
 
 def check_format_for_ranking_submission(submission: pd.DataFrame) -> None:
@@ -52,14 +52,9 @@ def check_format_for_ranking_submission(submission: pd.DataFrame) -> None:
 
     for rating_str in submission["Label"]:
         try:
-            rating = float(rating_str)
+            float(rating_str)
         except ValueError:
             raise ValueError(f"Rating {rating_str} is not a float.")
-        else:
-            if 1 > rating or rating > 5:
-                raise ValueError(
-                    f"Rating {rating} is not within the range between 1 and 5."
-                )
 
 
 def check_format_for_classification_submission(submission: pd.DataFrame) -> None:
