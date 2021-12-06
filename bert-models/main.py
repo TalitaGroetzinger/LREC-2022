@@ -14,10 +14,10 @@ bert = BertModel.from_pretrained('bert-base-uncased')
 
 
 # Dataset reading paths. 
-PathToTrainLabels = "./data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "./data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "./data/ClarificationTask_DevLabels_Oct22a.tsv"
-PathToDevData = "./data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../data/ClarificationTask_DevLabels_Oct22a.tsv"
+PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
 
 
 # Model parameters 
@@ -26,6 +26,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PAD_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 UNK_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.unk_token)
 MAX_SEQ_LEN = 100
+HIDDEN_DIM = 256
+OUTPUT_DIM = 3
+N_LAYERS = 2
+BIDIRECTIONAL = True
+DROPOUT = 0.25
+N_EPOCHS = 5
 
 
 # set sequential = False, those fields are not texts. 
@@ -73,15 +79,8 @@ def main():
 
     # read data and return buckets 
     train_iter, valid_iter, test_iter = read_data()
-    
-    # create instance of the model 
-    HIDDEN_DIM = 256
-    OUTPUT_DIM = 3
-    N_LAYERS = 2
-    BIDIRECTIONAL = True
-    DROPOUT = 0.25
-    
-
+      
+    # initialize the model. 
     model = BERTClassification(bert,
                             HIDDEN_DIM,
                             OUTPUT_DIM,
@@ -89,6 +88,11 @@ def main():
                             BIDIRECTIONAL,
                             DROPOUT)
     
+    # check the parameters 
+    print("training the following parameters .... ")
+    for name, param in model.named_parameters():                
+        if param.requires_grad:
+            print(name)
 
     optimizer = optim.Adam(model.parameters())
 
@@ -97,8 +101,6 @@ def main():
     model = model.to(device)
     criterion = criterion.to(device)
     
-    N_EPOCHS = 5
-
     best_valid_loss = float('inf')
     for epoch in range(N_EPOCHS):
         
