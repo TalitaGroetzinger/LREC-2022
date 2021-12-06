@@ -13,10 +13,10 @@ bert = BertModel.from_pretrained('bert-base-uncased')
 
 
 # Dataset reading paths. 
-PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../data/ClarificationTask_DevLabels_Oct22a.tsv"
-PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "./data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "./data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "./data/ClarificationTask_DevLabels_Oct22a.tsv"
+PathToDevData = "./data/ClarificationTask_DevData_Oct22a.tsv"
 
 
 
