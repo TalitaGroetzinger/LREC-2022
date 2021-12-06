@@ -5,7 +5,12 @@ import torch
 
 def categorical_accuracy(preds, y):
     """
-    Returns accuracy per batch, i.e. if you get 8/10 right, this returns 0.8, NOT 8
+        Compute the accuracy for multi-class classification by taking the argmax. 
+
+        :param preds: predictions provided by the model 
+        :param y: the gold labels 
+        :return: the accuracy score for a batch. 
+         
     """
     top_pred = preds.argmax(1, keepdim = True)
     correct = top_pred.eq(y.view_as(top_pred)).sum()
@@ -52,7 +57,7 @@ def evaluate(model, iterator, criterion, device):
     
         for batch in iterator:
 
-            predictions = model(batch.version).squeeze(1)
+            predictions = model(batch.version.to(device)).squeeze(1)
             predictions = predictions.to(device)
             label = batch.label.type(torch.LongTensor)
             label = label.to(device)
