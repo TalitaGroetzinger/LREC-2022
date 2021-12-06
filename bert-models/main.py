@@ -102,7 +102,8 @@ def main():
     N_EPOCHS = 5
     best_valid_loss = float('inf')
     for epoch in range(N_EPOCHS):
+        print("============= EPOCH ==== {0}".format(epoch))
         train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        print(train_loss, train_acc)
-      
+        print("============= loss {0} train acc: {1} ====".format(train_loss, train_acc))
+
 main()
