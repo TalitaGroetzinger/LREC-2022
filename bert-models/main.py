@@ -99,7 +99,7 @@ def main():
     
     N_EPOCHS = 5
 
-
+    best_valid_loss = float('inf')
     for epoch in range(N_EPOCHS):
         
         start_time = time.time()
@@ -112,7 +112,7 @@ def main():
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), 'baseline-model.pt')
         
-        print(f'Epoch: {0}'.format(epoch))
+        print('Epoch: {0}'.format(epoch))
         print(f'\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%')
         print(f'\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%')
 

@@ -62,7 +62,7 @@ def evaluate(model, iterator, criterion, device):
             label = batch.label.type(torch.LongTensor)
             label = label.to(device)
 
-            loss = criterion(predictions, batch.label)
+            loss = criterion(predictions, label)
             
             acc = categorical_accuracy(predictions, label)
 
