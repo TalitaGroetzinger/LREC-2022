@@ -7,7 +7,8 @@ from torch.nn import BCELoss, CrossEntropyLoss
 from transformers import BertTokenizer, BertModel
 from models import BERTClassification
 import torch.optim as optim 
-from helpers import train 
+from helpers import train, evaluate
+import time 
 
 bert = BertModel.from_pretrained('bert-base-uncased')
 
@@ -100,11 +101,22 @@ def main():
     criterion = criterion.to(device)
     
     N_EPOCHS = 5
-    best_valid_loss = float('inf')
-    print("------------- TRAINING --------------")
+
+
     for epoch in range(N_EPOCHS):
-        print("============= EPOCH ==== {0}".format(epoch))
+        
+        start_time = time.time()
+        
         train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        print("============= loss {0} train acc: {1} ====".format(train_loss, train_acc))
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+        
+            
+        if valid_loss < best_valid_loss:
+            best_valid_loss = valid_loss
+            torch.save(model.state_dict(), 'baseline-model.pt')
+        
+        print(f'Epoch: {0}'.format(epoch))
+        print(f'\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%')
+        print(f'\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%')
 
 main()

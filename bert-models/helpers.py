@@ -40,3 +40,28 @@ def train(model, iterator, optimizer, criterion, device):
         epoch_acc += acc.item()
         
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
+
+def evaluate(model, iterator, criterion, device):
+    
+    epoch_loss = 0
+    epoch_acc = 0
+    
+    model.eval()
+    
+    with torch.no_grad():
+    
+        for batch in iterator:
+
+            predictions = model(batch.version).squeeze(1)
+            predictions = model(batch.version.to(device))
+            label = batch.label.type(torch.LongTensor)
+            label = label.to(device)
+
+            loss = criterion(predictions, batch.label)
+            
+            acc = categorical_accuracy(predictions, label)
+
+            epoch_loss += loss.item()
+            epoch_acc += acc.item()
+        
+    return epoch_loss / len(iterator), epoch_acc / len(iterator)
