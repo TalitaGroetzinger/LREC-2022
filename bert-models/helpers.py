@@ -53,7 +53,7 @@ def evaluate(model, iterator, criterion, device):
         for batch in iterator:
 
             predictions = model(batch.version).squeeze(1)
-            predictions = model(batch.version.to(device))
+            predictions = predictions.to(device)
             label = batch.label.type(torch.LongTensor)
             label = label.to(device)
 
