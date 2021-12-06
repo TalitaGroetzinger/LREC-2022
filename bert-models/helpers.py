@@ -25,13 +25,12 @@ def train(model, iterator, optimizer, criterion, device):
         
         optimizer.zero_grad()
         
-        predictions = model(batch.version)
+        predictions = model(batch.version.to(device))
         label = batch.label.type(torch.LongTensor)
-        label.to(device)
-
+        label = label.to(device)
         loss = criterion(predictions, label)
         
-        acc = categorical_accuracy(predictions, batch.label)
+        acc = categorical_accuracy(predictions, label)
         
         loss.backward()
         
