@@ -82,7 +82,6 @@ def main():
     N_LAYERS = 2
     BIDIRECTIONAL = True
     DROPOUT = 0.25
-
     
 
     model = BERTClassification(bert,
@@ -103,7 +102,7 @@ def main():
     N_EPOCHS = 5
     best_valid_loss = float('inf')
     for epoch in range(N_EPOCHS):
-        train_loss, train_acc = train(model, train_iter, optimizer, criterion)
+        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
         print(train_loss, train_acc)
       
 main()
