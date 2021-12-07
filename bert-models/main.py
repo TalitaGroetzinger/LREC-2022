@@ -14,10 +14,10 @@ bert = BertModel.from_pretrained('bert-base-uncased')
 
 
 # Dataset reading paths. 
-PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../data/ClarificationTask_DevLabels_Oct22a.tsv"
-PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "./data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "./data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "./data/ClarificationTask_DevLabels_Oct22a.tsv"
+PathToDevData = "./data/ClarificationTask_DevData_Oct22a.tsv"
 
 
 # Model parameters 
@@ -31,7 +31,7 @@ OUTPUT_DIM = 3
 N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
-N_EPOCHS = 5
+N_EPOCHS = 10
 
 
 # set sequential = False, those fields are not texts. 
