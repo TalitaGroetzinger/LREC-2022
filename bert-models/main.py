@@ -16,8 +16,8 @@ bert = BertModel.from_pretrained('bert-base-uncased')
 # Dataset reading paths. 
 PathToTrainLabels = "./data/ClarificationTask_TrainLabels_Sep23.tsv"
 PathToTrainData = "./data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "./data/ClarificationTask_DevLabels_Oct22a.tsv"
-PathToDevData = "./data/ClarificationTask_DevLabels_Dec12.tsv" 
+PathToDevLabels = "./data/ClarificationTask_DevLabels_Dec12.tsv" 
+PathToDevData = "./data/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
