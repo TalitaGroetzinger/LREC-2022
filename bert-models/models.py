@@ -32,8 +32,7 @@ class BERTClassification(nn.Module):
         
         #text = [batch size, sent len]
                 
-        with torch.no_grad():
-            embedded = self.bert(text)[0]
+        embedded = self.bert(text)[0]
                 
         #embedded = [batch size, sent len, emb dim]
         
