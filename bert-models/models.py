@@ -16,10 +16,12 @@ class BERTClassification(nn.Module):
         
         self.bert = bert
         self.lstm = LSTM 
-        
+        self.n_layers = n_layers
+        self.hidden_dim = hidden_dim
+
         embedding_dim = bert.config.to_dict()['hidden_size']
         
-        if self.LSTM: 
+        if self.lstm: 
             self.rnn = nn.LSTM(embedding_dim,
                           hidden_dim,
                           num_layers = n_layers,
@@ -46,7 +48,7 @@ class BERTClassification(nn.Module):
                 
         #embedded = [batch size, sent len, emb dim]
 
-        if self.LSTM: 
+        if self.lstm: 
             h_0 = Variable(torch.randn(self.n_layers*2, embedded.size()[0], self.hidden_dim)).cuda()
             c_0 = Variable(torch.randn(self.n_layers*2, embedded.size()[0], self.hidden_dim)).cuda()
             _, hidden = self.rnn(embedded, (h_0, c_0)) 
