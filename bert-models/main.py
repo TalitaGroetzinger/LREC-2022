@@ -1,4 +1,4 @@
-from data_preprocessing import merge_data 
+from data_preprocessing import merge_data
 import torch 
 from torchtext.legacy import data 
 from transformers import BertTokenizer
@@ -14,10 +14,10 @@ bert = BertModel.from_pretrained('bert-base-uncased')
 
 
 # Dataset reading paths. 
-PathToTrainLabels = "./data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "./data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "./data/ClarificationTask_DevLabels_Dec12.tsv" 
-PathToDevData = "./data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../data/ClarificationTask_DevLabels_Dec12.tsv" 
+PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -31,6 +31,7 @@ N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
 N_EPOCHS = 10
+USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 
@@ -40,22 +41,34 @@ ids = data.Field()
 label = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
 #label = data.LabelField(dtype=torch.float)
 # set use_vocab=False to use own decoder 
-version = data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+text = data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
                    fix_length=MAX_SEQ_LEN, pad_token=PAD_INDEX, unk_token=UNK_INDEX)
 ids.build_vocab()
 #label.build_vocab()
-version.build_vocab()
+text.build_vocab()
 
-fields = {'ids': ('ids', ids), 'version': ('version', version), 'label': ('label', label)}
+fields = {'ids': ('ids', ids), 'text': ('text', text), 'label': ('label', label)}
 
 
-def read_data():
-    merge_data(path_to_instances=PathToTrainData, path_to_labels=PathToTrainLabels)
-    train_df = merge_data(PathToTrainData, PathToTrainLabels, FILLER_MARKERS)
-    development_df = merge_data(PathToDevData, PathToDevLabels)
+def read_data(use_context):
+    """
+        :param: use_context: boolean indicating whether the text should contain the sentence+filler (use_context=False) or sentence+filler in context (use_context=True) 
+        :return: 
+        * train and development set in bucketiterator format. 
+    """
+    if use_context:
+        train_df = merge_data(path_to_instances=PathToTrainData, path_to_labels=PathToTrainLabels, filler_markers=FILLER_MARKERS, use_context=use_context)
+        development_df = merge_data(path_to_instances=PathToDevData, path_to_labels=PathToDevLabels, filler_markers=FILLER_MARKERS, use_context=use_context)
+        train_df.to_csv("./data/train.csv", index=False)
+        development_df.to_csv("./data/dev.csv", index=False)
 
-    train_df.to_csv("./data/train.csv", index=False)
-    development_df.to_csv("./data/dev.csv", index=False)
+    else:
+        train_df = merge_data(path_to_instances=PathToTrainData, path_to_labels=PathToTrainLabels,
+                              filler_markers=FILLER_MARKERS, use_context=use_context)
+        development_df = merge_data(path_to_instances=PathToDevData, path_to_labels=PathToDevLabels,
+                                    filler_markers=FILLER_MARKERS, use_context=use_context)
+        train_df.to_csv("./data/train.csv", index=False)
+        development_df.to_csv("./data/dev.csv", index=False)
 
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
@@ -70,8 +83,8 @@ def read_data():
     #label.build_vocab(train_data) 
     print("Train instances:", len(train_data)) 
     print("Dev instances:", len(valid_data))
-    train_iter = data.BucketIterator(train_data, batch_size=16, sort_key=lambda x: len(x.version), train=True, sort=True, sort_within_batch=True)
-    valid_iter = data.BucketIterator(valid_data, batch_size=16, sort_key=lambda x: len(x.version), train=True, sort=True, sort_within_batch=True)
+    train_iter = data.BucketIterator(train_data, batch_size=16, sort_key=lambda x: len(x.text), train=True, sort=True, sort_within_batch=True)
+    valid_iter = data.BucketIterator(valid_data, batch_size=16, sort_key=lambda x: len(x.text), train=True, sort=True, sort_within_batch=True)
     
     test_iter = data.Iterator(test_data, batch_size=16, train=False, shuffle=False, sort=False)
     return train_iter, valid_iter, test_iter
@@ -80,8 +93,9 @@ def read_data():
 def main(): 
 
     # read data and return buckets 
-    train_iter, valid_iter, test_iter = read_data()
-      
+    # at the moment, do not use the test data. 
+    train_iter, valid_iter, _ = read_data(use_context=USE_CONTEXT)
+
     # initialize the model. 
     model = BERTClassification(bert,
                             HIDDEN_DIM,

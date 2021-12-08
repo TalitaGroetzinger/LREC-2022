@@ -1,14 +1,15 @@
 from typing import List, Tuple
-
 import pandas as pd
 
 
-def retrieve_instances_from_dataset(dataset, filler_markers=None):
+def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=None):
     """Retrieve sentences with insertions from dataset.
 
     :param dataset: dataframe with labeled data
+    :param use_context: whether the context+title should be used or not
     :param filler_markers: optional tuple with start and end marker strs for filler span
     if this is empty, the filler span is not marked
+
     :return: a tuple with
     * a list of id strs
     * a list of sentence strs
@@ -30,7 +31,21 @@ def retrieve_instances_from_dataset(dataset, filler_markers=None):
                 sent_with_filler = row["Sentence"].replace(
                     "______", row[f"Filler{filler_index}"]
                 )
-            instances.append(sent_with_filler)
+
+            if use_context:
+                if row['Follow-up context']:
+                    context = "{0} \n {1} \n{2} \n{3} \n{4}".format(row['Article title'], row['Section header'],
+                                                                    row['Previous context'], sent_with_filler,
+                                                                    row['Follow-up context'])
+                    context.replace("(...)", '')
+                else:
+                    context = "{0} \n {1} \n{2} \n{3}".format(row['Article title'], row['Section header'],
+                                                              row['Previous context'], sent_with_filler)
+                    context.replace("(...)", '')
+
+                instances.append(context)
+            else:
+                instances.append(sent_with_filler)
 
     return ids, instances
 
@@ -63,25 +78,27 @@ def insert_filler_markers(sentence: str, filler: str, filler_markers: Tuple[str,
         raise ValueError(f"Sentence {sentence} does not contain blank.")
 
 
-def merge_data(path_to_instances, path_to_labels, filler_markers=None):
-    """Merge the labels and instances together into one file. 
+def merge_data(path_to_instances, path_to_labels, use_context: bool, filler_markers=None):
+    """Merge the labels and instances together into one file.
 
     :param path_to_instances: path to tsv with instances from the dataset 
     :param path_to_labels: path to tsv with labels (classes) form the dataset
+    :param use_context: bool indicating if context should be used
     :param filler_markers: optional tuple with start and end marker strs for filler span
     if this is empty, the filler span is not marked
     :return: a dataframe with the following columns: ids, version, label 
     """
-    merged_df_dict = {"ids": [], "version": [], "label": []}
+    merged_df_dict = {"ids": [], "text": [], "label": []}
     instances_df = pd.read_csv(path_to_instances, sep='\t')
+
     labels_df = pd.read_csv(path_to_labels, sep='\t', names=["Id", "Label"])
     label_dict = {row["Id"]: row["Label"] for _, row in labels_df.iterrows()}
 
-    ids, instances = retrieve_instances_from_dataset(dataset=instances_df, filler_markers=filler_markers)
+    ids, instances = retrieve_instances_from_dataset(dataset=instances_df, use_context=use_context, filler_markers=filler_markers)
 
-    for id_elem, instance in zip(ids, instances): 
+    for id_elem, instance in zip(ids, instances):
         merged_df_dict["ids"].append(id_elem)
-        merged_df_dict["version"].append(instance)
+        merged_df_dict["text"].append(instance)
         label = label_dict[id_elem]
         
         if label == "IMPLAUSIBLE":
