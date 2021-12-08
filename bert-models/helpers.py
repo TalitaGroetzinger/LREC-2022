@@ -18,6 +18,8 @@ def categorical_accuracy(preds, y):
     return acc
 
 
+
+
 def train(model, iterator, optimizer, criterion, device):
     
     epoch_loss = 0
@@ -30,7 +32,7 @@ def train(model, iterator, optimizer, criterion, device):
         
         optimizer.zero_grad()
         
-        predictions = model(batch.version.to(device))
+        predictions = model(batch.text.to(device))
         label = batch.label.type(torch.LongTensor)
         label = label.to(device)
         loss = criterion(predictions, label)
@@ -57,7 +59,7 @@ def evaluate(model, iterator, criterion, device):
     
         for batch in iterator:
 
-            predictions = model(batch.version.to(device)).squeeze(1)
+            predictions = model(batch.text.to(device)).squeeze(1)
             predictions = predictions.to(device)
             label = batch.label.type(torch.LongTensor)
             label = label.to(device)
