@@ -39,13 +39,13 @@ ids = data.Field()
 label = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
 #label = data.LabelField(dtype=torch.float)
 # set use_vocab=False to use own decoder 
-version = data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+text = data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
                    fix_length=MAX_SEQ_LEN, pad_token=PAD_INDEX, unk_token=UNK_INDEX)
 ids.build_vocab()
 #label.build_vocab()
-version.build_vocab()
+text.build_vocab()
 
-fields = {'ids': ('ids', ids), 'version': ('version', version), 'label': ('label', label)}
+fields = {'ids': ('ids', ids), 'text': ('text', text), 'label': ('label', label)}
 
 
 def read_data(use_context): 
@@ -92,6 +92,7 @@ def main():
     # read data and return buckets 
     # at the moment, do not use the test data. 
     train_iter, valid_iter, _ = read_data(use_context=USE_CONTEXT)
+
     # initialize the model. 
     model = BERTClassification(bert,
                             HIDDEN_DIM,
