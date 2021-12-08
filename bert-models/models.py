@@ -2,6 +2,7 @@ from transformers import BertTokenizer, BertModel
 import torch.nn as nn
 import torch 
 from torch.autograd import Variable
+import pdb
 
 class BERTClassification(nn.Module):
     def __init__(self,
@@ -52,7 +53,7 @@ class BERTClassification(nn.Module):
             h_0 = Variable(torch.randn(self.n_layers*2, embedded.size()[0], self.hidden_dim)).cuda()
             c_0 = Variable(torch.randn(self.n_layers*2, embedded.size()[0], self.hidden_dim)).cuda()
             _, hidden = self.rnn(embedded, (h_0, c_0)) 
-
+            hidden = self.dropout(torch.cat((hidden[0][-2,:,:], hidden[0][-1,:,:]), dim = 1))
 
         else:   
             _, hidden = self.rnn(embedded)
