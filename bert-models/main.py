@@ -31,6 +31,8 @@ N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
 N_EPOCHS = 10
+FILLER_MARKERS = None
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 
 
 # set sequential = False, those fields are not texts. 
@@ -47,8 +49,9 @@ version.build_vocab()
 fields = {'ids': ('ids', ids), 'version': ('version', version), 'label': ('label', label)}
 
 
-def read_data(): 
-    train_df = merge_data(PathToTrainData, PathToTrainLabels)
+def read_data():
+    merge_data(path_to_instances=PathToTrainData, path_to_labels=PathToTrainLabels)
+    train_df = merge_data(PathToTrainData, PathToTrainLabels, FILLER_MARKERS)
     development_df = merge_data(PathToDevData, PathToDevLabels)
 
     train_df.to_csv("./data/train.csv", index=False)
