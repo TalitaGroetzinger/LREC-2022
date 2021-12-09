@@ -1,11 +1,12 @@
 from data_preprocessing import merge_data
+from helpers import train, evaluate
+
 import torch
 from torchtext.legacy import data
 from torch.nn import CrossEntropyLoss
-from transformers import BertTokenizer, BertModel
-from models import BERTClassification
 import torch.optim as optim
-from helpers import train, evaluate
+from transformers import BertTokenizer, BertModel
+from models import BERTClassification, SimpleBERT
 
 
 bert = BertModel.from_pretrained("bert-base-uncased")
@@ -136,17 +137,24 @@ def main():
     # at the moment, do not use the test data.
     train_iter, valid_iter, _ = read_data(use_context=USE_CONTEXT)
 
+    # check the parameters
     # initialize the model.
-    model = BERTClassification(
-        bert, HIDDEN_DIM, OUTPUT_DIM, N_LAYERS, BIDIRECTIONAL, DROPOUT
-    )
+    # model = BERTClassification(bert,
+    #                        HIDDEN_DIM,
+    #                        OUTPUT_DIM,
+    #                        N_LAYERS,
+    #                        BIDIRECTIONAL,
+    #                        DROPOUT)
+    
+    # but remember that the hidden dim is not used here XD. 
+    model = SimpleBERT(bert, HIDDEN_DIM, OUTPUT_DIM)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
         tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
         bert.resize_token_embeddings(len(tokenizer))
 
-    # check the parameters
+    # check the parameters 
     print("training the following parameters .... ")
     for name, param in model.named_parameters():
         if param.requires_grad:
