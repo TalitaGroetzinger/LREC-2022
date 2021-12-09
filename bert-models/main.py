@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 import pdb 
 from torch.nn import BCELoss, CrossEntropyLoss
 from transformers import BertTokenizer, BertModel
-from models import BERTClassification
+from models import BERTClassification, SimpleBERT
 import torch.optim as optim 
 from helpers import train, evaluate
 import time 
@@ -94,13 +94,15 @@ def main():
     train_iter, valid_iter, _ = read_data(use_context=USE_CONTEXT)
 
     # initialize the model. 
-    model = BERTClassification(bert,
-                            HIDDEN_DIM,
-                            OUTPUT_DIM,
-                            N_LAYERS,
-                            BIDIRECTIONAL,
-                            DROPOUT)
+    #model = BERTClassification(bert,
+    #                        HIDDEN_DIM,
+    #                        OUTPUT_DIM,
+    #                        N_LAYERS,
+    #                        BIDIRECTIONAL,
+    #                        DROPOUT)
     
+    # but remember that the hidden dim is not used here XD. 
+    model = SimpleBERT(bert, HIDDEN_DIM, OUTPUT_DIM)
     # check the parameters 
     print("training the following parameters .... ")
     for name, param in model.named_parameters():                

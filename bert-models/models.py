@@ -1,4 +1,4 @@
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel, BertForSequenceClassification
 import torch.nn as nn
 import torch 
 from torch.autograd import Variable
@@ -68,6 +68,44 @@ class BERTClassification(nn.Module):
         #hidden = [batch size, hid dim]
         
         output = self.out(hidden)
+        
+        #output = [batch size, out dim]
+        
+        return output
+
+
+
+class SimpleBERT(nn.Module):
+    def __init__(self,
+                 bert,
+                 hidden_dim,
+                 output_dim): 
+        
+        super().__init__()
+        
+        self.bert = bert
+        embedding_dim = bert.config.to_dict()['hidden_size']
+        self.hidden_dim = hidden_dim 
+        self.output_dim = output_dim
+        
+
+        
+        self.out = nn.Linear(embedding_dim, output_dim)
+
+        
+    def forward(self, text):
+        
+        #text = [batch size, sent len]
+                
+        embedded = self.bert(text)[1]
+                
+        #embedded = [batch size, sent len, emb dim]
+
+     
+        #hidden = [batch size, hid dim]
+ 
+        output = self.out(embedded)
+        
         
         #output = [batch size, out dim]
         
