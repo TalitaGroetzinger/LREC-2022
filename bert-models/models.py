@@ -47,12 +47,13 @@ class BERTClassification(nn.Module):
         # embedded = [batch size, sent len, emb dim]
 
         if self.lstm:
-            h_0 = Variable(
-                torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)
-            ).cuda()
-            c_0 = Variable(
-                torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)
-            ).cuda()
+            if torch.cuda.is_available():
+                h_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)).cuda()
+                c_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)).cuda()
+            else:
+                h_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim))
+                c_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim))
+
             _, hidden = self.rnn(embedded, (h_0, c_0))
             hidden = self.dropout(
                 torch.cat((hidden[0][-2, :, :], hidden[0][-1, :, :]), dim=1)
