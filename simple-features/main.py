@@ -53,11 +53,17 @@ text = data.Field(
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
+
+
+rank = data.Field(
+    sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
+)
+
 ids.build_vocab()
 # label.build_vocab()
 text.build_vocab()
 
-fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label)}
+fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
 
 def read_data(use_context):
@@ -98,17 +104,100 @@ def read_data(use_context):
         )
     
     print("extract features for train ..... ")
-    train_with_features = extract_features(train_df, 'train_df_with_perplexity.tsv') 
+    train_with_features_path = extract_features('train_df_with_perplexity.tsv') 
 
     print("extract features for dev")
-    dev_with_features = extract_features(development_df, 'dev_df_with_perplexity.tsv')
-    return train_with_features, dev_with_features
+    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv')
+
+
+    train_data, valid_data, test_data = data.TabularDataset.splits(
+        path=".",
+        train=train_with_features_path,
+        validation=dev_with_features_path,
+        test=dev_with_features_path,
+        format="csv",
+        fields=fields,
+        skip_header=False,
+    )
+    # label.build_vocab(train_data)
+    print("Train instances:", len(train_data))
+    print("Dev instances:", len(valid_data))
+    train_iter = data.BucketIterator(
+        train_data,
+        batch_size=16,
+        sort_key=lambda x: len(x.text),
+        train=True,
+        sort=True,
+        sort_within_batch=True,
+    )
+    valid_iter = data.BucketIterator(
+        valid_data,
+        batch_size=16,
+        sort_key=lambda x: len(x.text),
+        train=True,
+        sort=True,
+        sort_within_batch=True,
+    )
+
+    test_iter = data.Iterator(
+        test_data, batch_size=16, train=False, shuffle=False, sort=False
+    )
+    return train_iter, valid_iter, test_iter
+
+
 
 
 def main():
     # read data and return buckets
     # at the moment, do not use the test data.
-    read_data(use_context=USE_CONTEXT)
+    train_iter, valid_iter, test_iter = read_data(use_context=USE_CONTEXT)
+
+
+    # check the parameters
+    # initialize the model.
+
+    #  self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
+
+    model = BERTClassification(bert,
+                            HIDDEN_DIM,
+                            OUTPUT_DIM,
+                            N_LAYERS,
+                            BIDIRECTIONAL,
+                            DROPOUT)
+    
+  
+
+    # add filler markers to tokenizer vocabulary if necessary
+    if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
+        tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
+        bert.resize_token_embeddings(len(tokenizer))
+
+    # check the parameters 
+    print("training the following parameters .... ")
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name)
+
+    optimizer = optim.Adam(model.parameters())
+
+    criterion = CrossEntropyLoss()
+
+    model = model.to(device)
+    criterion = criterion.to(device)
+
+    best_valid_loss = float("inf")
+    for epoch in range(N_EPOCHS):
+        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+
+        if valid_loss < best_valid_loss:
+            best_valid_loss = valid_loss
+            torch.save(model.state_dict(), MODEL_NAME)
+
+        print("Epoch: {0}".format(epoch))
+        print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
+        print(f"\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%")
+
 
 
 

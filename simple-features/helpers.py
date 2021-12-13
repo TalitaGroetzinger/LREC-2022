@@ -24,7 +24,9 @@ def train(model, iterator, optimizer, criterion, device):
     for batch in iterator:
         optimizer.zero_grad()
 
-        predictions = model(batch.text.to(device), batch.ranking_var.to(device)).squeeze(1)
+        ranking = batch.rank.type(torch.LongTensor)
+        predictions = model(batch.text.to(device), ranking.to(device)).squeeze(1)
+
         label = batch.label.type(torch.LongTensor)
         label = label.to(device)
         loss = criterion(predictions, label)
@@ -50,8 +52,8 @@ def evaluate(model, iterator, criterion, device):
     with torch.no_grad():
 
         for batch in iterator:
-
-            predictions = model(batch.text.to(device), batch.ranking_var.to(device)).squeeze(1)
+            ranking = batch.rank.type(torch.LongTensor)
+            predictions = model(batch.text.to(device), ranking.to(device)).squeeze(1)
             predictions = predictions.to(device)
             label = batch.label.type(torch.LongTensor)
             label = label.to(device)
