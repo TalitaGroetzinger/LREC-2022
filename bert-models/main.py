@@ -32,6 +32,7 @@ N_EPOCHS = 10
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+MODEL_NAME = "baseline-model.pt"
 
 
 # set sequential = False, those fields are not texts.
@@ -174,7 +175,7 @@ def main():
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), "baseline-model.pt")
+            torch.save(model.state_dict(), MODEL_NAME)
 
         print("Epoch: {0}".format(epoch))
         print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
