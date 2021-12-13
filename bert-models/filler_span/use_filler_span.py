@@ -25,13 +25,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Model parameters
 OUTPUT_DIM = 3
-BIDIRECTIONAL = True
-DROPOUT = 0.25
 N_EPOCHS = 5
 USE_CONTEXT = False
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-CONSTRUCT_SENTENCE_PAIR = True
+CONSTRUCT_SENTENCE_PAIR = False
+USE_DROPOUT = False
 
 
 def main():
@@ -64,7 +63,9 @@ def main():
         val_dataset, batch_size=16, collate_fn=batch_collator.collate
     )
 
-    model = SimplePlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM)
+    model = SimplePlausibilityClassifier(
+        bert=bert, output_dim=OUTPUT_DIM, use_dropout=USE_DROPOUT
+    )
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
