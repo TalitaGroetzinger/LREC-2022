@@ -11,11 +11,10 @@ from dataset import (
     get_data_loader,
 )
 from helpers import train, evaluate
-from model import StartMarkerPlausibilityClassifier
-
+from model import SimplePlausibilityClassifier
 
 # Dataset reading paths.
-PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep24.tsv"
 PathToTrainData = "../../data/ClarificationTask_TrainData_Sep23.tsv"
 PathToDevLabels = "../../data/ClarificationTask_DevLabels_Dec12.tsv"
 PathToDevData = "../../data/ClarificationTask_DevData_Oct22a.tsv"
@@ -26,21 +25,26 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Model parameters
 OUTPUT_DIM = 3
-BIDIRECTIONAL = True
-DROPOUT = 0.25
 N_EPOCHS = 5
 USE_CONTEXT = False
 FILLER_MARKERS = ("[F]", "[/F]")
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
 LEARNING_RATE = 0.0001
+CONSTRUCT_SENTENCE_PAIR = False
+USE_DROPOUT = False
 
 
 def main():
     print("Start")
     instance_transformation = InstanceTransformation(
-        tokenizer=tokenizer, filler_markers=FILLER_MARKERS, use_context=USE_CONTEXT
+        tokenizer=tokenizer,
+        filler_markers=FILLER_MARKERS,
+        use_context=USE_CONTEXT,
+        construct_sentence_pair=CONSTRUCT_SENTENCE_PAIR,
     )
-    batch_collator = BatchCollation(tokenizer=tokenizer)
+    batch_collator = BatchCollation(
+        tokenizer=tokenizer, construct_sentence_pair=CONSTRUCT_SENTENCE_PAIR
+    )
 
     train_dataset = PlausibilityDataset(
         instance_file=PathToTrainData,
@@ -60,7 +64,9 @@ def main():
         val_dataset, batch_size=16, collate_fn=batch_collator.collate
     )
 
-    model = StartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM)
+    model = SimplePlausibilityClassifier(
+        bert=bert, output_dim=OUTPUT_DIM, use_dropout=USE_DROPOUT
+    )
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
