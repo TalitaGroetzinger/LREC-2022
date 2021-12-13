@@ -6,13 +6,15 @@ import transformers
 
 
 class BatchCollation:
-    def __init__(self, tokenizer: transformers.BertTokenizer):
+    def __init__(
+        self, tokenizer: transformers.BertTokenizer, construct_sentence_pair=False
+    ):
         self.tokenizer = tokenizer
+        self.construct_sentence_pair = construct_sentence_pair
 
     def collate(self, batch: List[Dict]):
         """ """
         result = {}
-
         keys = ["identifier", "text", "filler_start_index", "filler_end_index", "label"]
 
         for key in keys:
@@ -26,18 +28,31 @@ class BatchCollation:
             if key not in ["identifier", "text"]:
                 result[key] = torch.tensor(result[key])
 
-        result["text"] = self.tokenizer(
-            text=result["text"], return_tensors="pt", padding=True
-        )
+        if self.construct_sentence_pair:
+            pass
+            result["text"] = self.tokenizer(
+                result["text"], result["filler"], return_tensors="pt", padding=True
+            )
+        else:
+            result["text"] = self.tokenizer(
+                text=result["text"], return_tensors="pt", padding=True
+            )
 
         return result
 
 
 class InstanceTransformation:
-    def __init__(self, tokenizer, filler_markers=None, use_context=False):
+    def __init__(
+        self,
+        tokenizer,
+        filler_markers=None,
+        use_context=False,
+        construct_sentence_pair=False,
+    ):
         self.tokenizer = tokenizer
         self.filler_markers = filler_markers
         self.use_context = use_context
+        self.sentence_pair = construct_sentence_pair
 
     def transform(
         self,
@@ -53,7 +68,13 @@ class InstanceTransformation:
         start_index = None
         end_index = None
 
-        if self.filler_markers:
+        if self.sentence_pair:
+            sent_with_filler, start_index, end_index = self.construct_sentence_pair(
+                sentence=text,
+                filler=filler,
+            )
+
+        elif self.filler_markers:
             sent_with_filler, start_index, end_index = self.insert_filler_markers(
                 sentence=text,
                 filler=filler,
@@ -157,6 +178,16 @@ class InstanceTransformation:
 
         return new_sentence, start_index, end_index
 
+    def construct_sentence_pair(self, sentence: str, filler: str):
+        try:
+            sent_with_filler = sentence.replace("______", filler)
+            start_index = len(self.tokenizer.tokenize(sent_with_filler)) + 2
+            end_index = start_index + len(self.tokenizer.tokenize(filler)) - 1
+            return sent_with_filler, start_index, end_index
+
+        except ValueError:
+            raise ValueError(f"Sentence {sentence} does not contain blank.")
+
 
 class PlausibilityDataset(torch.utils.data.Dataset):
     def __init__(
@@ -210,28 +241,6 @@ def get_data_loader(dataset: PlausibilityDataset, batch_size: int, collate_fn):
     )
 
 
-def collate_batch(batch: List[Dict]) -> Dict:
-    result = {}
-
-    keys = ["identifier", "text", "filler_start_index", "filler_end_index", "label"]
-
-    for key in keys:
-        result[key] = []
-
-    for instance_dict in batch:
-        for key in keys:
-            result[key].append(instance_dict[key])
-
-    for key in keys:
-        if key not in ["identifier", "text"]:
-            result[key] = torch.tensor(result[key])
-
-    for sent in result["text"]:
-        pass
-
-    return result
-
-
 def transform_label(label: str) -> int:
     if label == "IMPLAUSIBLE":
         return 0
@@ -246,18 +255,10 @@ def transform_label(label: str) -> int:
 if __name__ == "__main__":
     tokenizer = transformers.BertTokenizer.from_pretrained("bert-base-uncased")
     instance_transformation = InstanceTransformation(
-        tokenizer=tokenizer, filler_markers=("$", "$")
+        tokenizer=tokenizer, filler_markers=("$", "$"), construct_sentence_pair=True
     )
+    res = instance_transformation.construct_sentence_pair(
+        sentence="This is the ______ whole point.", filler="what a mess!"
+    )
+    print(res)
     batch_collator = BatchCollation(tokenizer=tokenizer)
-
-    dataset = PlausibilityDataset(
-        instance_file="../../../captain_obvious_code/data/ClarificationTask_TrainData_Sep23.tsv",
-        label_file="../../../captain_obvious_code/data/ClarificationTask_TrainLabels_Sep23.tsv",
-        transformation=instance_transformation,
-    )
-
-    data_loader = get_data_loader(
-        dataset, batch_size=16, collate_fn=batch_collator.collate
-    )
-    for i, instance in enumerate(data_loader):
-        print(instance)
