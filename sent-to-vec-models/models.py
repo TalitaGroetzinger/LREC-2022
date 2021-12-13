@@ -99,6 +99,7 @@ class SimpleBERT(nn.Module):
         #text = [batch size, sent len]
                 
         embedded = self.bert(text)[1]
+        
                 
         #embedded = [batch size, sent len, emb dim]
 
