@@ -97,8 +97,8 @@ class SimpleBERT(nn.Module):
     def forward(self, text):
         
         #text = [batch size, sent len]
-        with torch.no_grad():                 
-            embedded = self.bert(text)[1]
+                
+        embedded = self.bert(text)[1]
                 
         #embedded = [batch size, sent len, emb dim]
 
