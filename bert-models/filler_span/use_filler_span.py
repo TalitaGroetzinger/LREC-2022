@@ -29,15 +29,16 @@ OUTPUT_DIM = 3
 BIDIRECTIONAL = True
 DROPOUT = 0.25
 N_EPOCHS = 5
-USE_CONTEXT = True
-FILLER_MARKERS = None
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+USE_CONTEXT = False
+FILLER_MARKERS = ("[F]", "[/F]")
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
+LEARNING_RATE = 0.0001
 
 
 def main():
     print("Start")
     instance_transformation = InstanceTransformation(
-        tokenizer=tokenizer, filler_markers=("$", "$")
+        tokenizer=tokenizer, filler_markers=FILLER_MARKERS, use_context=USE_CONTEXT
     )
     batch_collator = BatchCollation(tokenizer=tokenizer)
 
@@ -66,7 +67,7 @@ def main():
         tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
         bert.resize_token_embeddings(len(tokenizer))
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = CrossEntropyLoss()
 
     model = model.to(device)
