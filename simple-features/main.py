@@ -53,11 +53,17 @@ text = data.Field(
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
+
+
+rank = data.Field(
+    sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
+)
+
 ids.build_vocab()
 # label.build_vocab()
 text.build_vocab()
 
-fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label)}
+fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
 
 def read_data(use_context):
@@ -98,17 +104,54 @@ def read_data(use_context):
         )
     
     print("extract features for train ..... ")
-    train_with_features = extract_features(train_df, 'train_df_with_perplexity.tsv') 
+    train_with_features_path = extract_features('train_df_with_perplexity.tsv') 
 
     print("extract features for dev")
-    dev_with_features = extract_features(development_df, 'dev_df_with_perplexity.tsv')
-    return train_with_features, dev_with_features
+    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv')
+
+
+    train_data, valid_data, test_data = data.TabularDataset.splits(
+        path=".",
+        train=train_with_features_path,
+        validation=dev_with_features_path,
+        test=dev_with_features_path,
+        format="csv",
+        fields=fields,
+        skip_header=False,
+    )
+    # label.build_vocab(train_data)
+    print("Train instances:", len(train_data))
+    print("Dev instances:", len(valid_data))
+    train_iter = data.BucketIterator(
+        train_data,
+        batch_size=16,
+        sort_key=lambda x: len(x.text),
+        train=True,
+        sort=True,
+        sort_within_batch=True,
+    )
+    valid_iter = data.BucketIterator(
+        valid_data,
+        batch_size=16,
+        sort_key=lambda x: len(x.text),
+        train=True,
+        sort=True,
+        sort_within_batch=True,
+    )
+
+    test_iter = data.Iterator(
+        test_data, batch_size=16, train=False, shuffle=False, sort=False
+    )
+    return train_iter, valid_iter, test_iter
+
+
 
 
 def main():
     # read data and return buckets
     # at the moment, do not use the test data.
-    read_data(use_context=USE_CONTEXT)
+    train_iter, valid_iter, test_iter = read_data(use_context=USE_CONTEXT)
+
 
 
 

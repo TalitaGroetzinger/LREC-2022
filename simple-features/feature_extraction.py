@@ -19,12 +19,45 @@ def get_perplexity(sentence_with_filler):
     perplexity_score = scorer.get_perplexity()
     return perplexity_score 
 
-def extract_features(df, filename): 
-    # check if the word occures earlier in the text 
-    #df['occurs_earlier'] = df.apply(lambda x: filler_in_text(x['context_before'], x['context_after'],x['fillers']), axis=1)
-    print("compute perplexity")
-    df['perplexity'] = df.apply(lambda x: get_perplexity(x['sents_with_filler']), axis=1) 
+def get_rows_with_same_id(row): 
+    return row.split("_")[0]
 
-    df.to_csv(filename, sep='\t')
+def group_perplexity(group, perplexity): 
+    pdb.set_trace()
 
+
+
+def extract_features(path_to_df): 
+    df = pd.read_csv(path_to_df, sep='\t')
+    
+    # drop the unnamed column 
+    df = df.drop(columns=['Unnamed: 0'])
+    df['group'] = df['ids'].apply(lambda x: get_rows_with_same_id(x))
+    # ranked score 
+
+    # get the group ids starting with 1, ending with the length of the df. 
+    dataframe_with_ranks_df = {"ids": [], "rank":[]}
+    for i in range(1,(len(df)//5)+1): 
+        subset = df.loc[df['group'] == str(i)]
+
+        d = []
+        for ids, perplexity in zip(subset['ids'].tolist(), subset['perplexity'].tolist()): 
+            d.append([ids, perplexity])
+
+        # sort the tuple: lower perplexity is on the first position. 
+        sorted_d = sorted(d, key=lambda tup: tup[1])
+        
+        # assign rank 
+       
+        for index, elem in enumerate(sorted_d,1):
+            dataframe_with_ranks_df["ids"].append(elem[0])
+            dataframe_with_ranks_df["rank"].append(index)
+        
+    dataframe_with_ranks = pd.DataFrame.from_dict(dataframe_with_ranks_df)
+    merged_df = pd.merge(df, dataframe_with_ranks, on='ids')
+    merged_df = merged_df.drop(columns=['fillers', 'perplexity', 'group', 'context_before', 'context_after', 'sents_with_filler'])
+    path_to_new_df = "./data/{0}_feat.csv".format(path_to_df.replace('.tsv', ''))
+    merged_df.to_csv(path_to_new_df)
+    print(merged_df)
+    return path_to_new_df
 
