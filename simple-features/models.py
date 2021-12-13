@@ -5,7 +5,7 @@ from torch.autograd import Variable
 
 class BERTClassification(nn.Module):
     def __init__(
-        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features, LSTM=True
+        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
     ):
         super().__init__()
 
@@ -40,7 +40,7 @@ class BERTClassification(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, text, ranking_var):
+    def forward(self, text, rank):
         # text = [batch size, sent len]
         embedded = self.bert(text)[0]
         # embedded = [batch size, sent len, emb dim]
@@ -70,9 +70,9 @@ class BERTClassification(nn.Module):
                 hidden = self.dropout(hidden[-1, :, :])
 
         # hidden = [batch size, hid dim]
-        ranking_var = ranking_var.unsqueeze(1)
+        ranking_var = rank.unsqueeze(1)
         final_rep = torch.cat([hidden, ranking_var], 1) 
-        output = self.out(hidden)
+        output = self.out(final_rep)
 
         # output = [batch size, out dim]
 

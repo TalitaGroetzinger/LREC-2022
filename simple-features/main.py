@@ -153,6 +153,52 @@ def main():
     train_iter, valid_iter, test_iter = read_data(use_context=USE_CONTEXT)
 
 
+    # check the parameters
+    # initialize the model.
+
+    #  self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
+
+    model = BERTClassification(bert,
+                            HIDDEN_DIM,
+                            OUTPUT_DIM,
+                            N_LAYERS,
+                            BIDIRECTIONAL,
+                            DROPOUT)
+    
+  
+
+    # add filler markers to tokenizer vocabulary if necessary
+    if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
+        tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
+        bert.resize_token_embeddings(len(tokenizer))
+
+    # check the parameters 
+    print("training the following parameters .... ")
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name)
+
+    optimizer = optim.Adam(model.parameters())
+
+    criterion = CrossEntropyLoss()
+
+    model = model.to(device)
+    criterion = criterion.to(device)
+
+    best_valid_loss = float("inf")
+    for epoch in range(N_EPOCHS):
+        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+
+        if valid_loss < best_valid_loss:
+            best_valid_loss = valid_loss
+            torch.save(model.state_dict(), MODEL_NAME)
+
+        print("Epoch: {0}".format(epoch))
+        print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
+        print(f"\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%")
+
+
 
 
 main()
