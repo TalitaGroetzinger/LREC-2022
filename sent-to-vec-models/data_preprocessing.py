@@ -37,7 +37,7 @@ def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=N
 
             if use_context:
                 if row["Follow-up context"]:
-                    context = "{0} \n {1} \n{2} [SEP] \n{3} \n{4}".format(
+                    context = "{0} \n {1} \n{2} \n{3} \n{4}".format(
                         row["Article title"],
                         row["Section header"],
                         row["Previous context"],
@@ -46,7 +46,7 @@ def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=N
                     )
                     context.replace("(...)", "")
                 else:
-                    context = "{0} \n {1} \n{2} [SEP] \n{3}".format(
+                    context = "{0} \n {1} \n{2} \n{3}".format(
                         row["Article title"],
                         row["Section header"],
                         row["Previous context"],
