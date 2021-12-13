@@ -147,8 +147,7 @@ def main():
     #                        BIDIRECTIONAL,
     #                        DROPOUT)
     
-    # but remember that the hidden dim is not used here XD. 
-    model = SimpleBERT(bert, HIDDEN_DIM, OUTPUT_DIM)
+    model = SimpleBERT(bert, OUTPUT_DIM)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
