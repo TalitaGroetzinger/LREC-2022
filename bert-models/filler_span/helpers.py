@@ -30,7 +30,6 @@ def train(model, data_loader, optimizer, criterion, device):
 
         epoch_loss += loss.item()
         epoch_acc += acc
-        break
 
     return epoch_loss / num_batches, epoch_acc / num_batches
 
@@ -55,6 +54,5 @@ def evaluate(model, data_loader, criterion, device):
 
             epoch_loss += loss.item()
             epoch_acc += acc
-            break
 
     return epoch_loss / num_batches, epoch_acc / num_batches

@@ -28,13 +28,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 OUTPUT_DIM = 3
 BIDIRECTIONAL = True
 DROPOUT = 0.25
-N_EPOCHS = 1
+N_EPOCHS = 5
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 
 
 def main():
+    print("Start")
     instance_transformation = InstanceTransformation(
         tokenizer=tokenizer, filler_markers=("$", "$")
     )
@@ -74,6 +75,7 @@ def main():
     best_valid_loss = float("inf")
 
     for epoch in range(N_EPOCHS):
+        print(f"Epoch {epoch}")
         train_loss, train_acc = train(
             model, train_data_loader, optimizer, criterion, device
         )
