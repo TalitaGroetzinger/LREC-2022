@@ -35,7 +35,7 @@ class StartMarkerPlausibilityClassifier(PlausibilityClassifier):
         bert_output = self.bert(**batch["text"])
 
         # 1-dim tensor with ints in range from 0 to the batch size
-        tensor_range = torch.arange(batch["text"].size()[0])
+        tensor_range = torch.arange(len(batch["identifier"]))
         filler_start_embedding = bert_output.last_hidden_state[
             tensor_range, batch["filler_start_index"]
         ]
