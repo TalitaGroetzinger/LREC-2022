@@ -9,7 +9,14 @@ from transformers import BertTokenizer, BertModel
 from models import BERTClassification, SimpleBERT
 from feature_extraction import extract_features
 import pdb 
+import random 
+import numpy as np 
 
+SEED = 1234 
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 bert = BertModel.from_pretrained("bert-base-uncased")
 
