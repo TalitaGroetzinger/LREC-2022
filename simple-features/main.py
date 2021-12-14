@@ -13,10 +13,10 @@ from feature_extraction import extract_features
 bert = BertModel.from_pretrained("bert-base-uncased")
 
 # Dataset reading paths.
-PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../data/ClarificationTask_DevLabels_Dec12.tsv"
-PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "../bert-models/data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "../bert-models/data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../bert-models/data/ClarificationTask_DevLabels_Dec12.tsv"
+PathToDevData = "../bert-models/data/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -33,7 +33,7 @@ N_EPOCHS = 10
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-sep.pt"
+MODEL_NAME = "context-with-ranking-feat.pt"
 
 
 # set sequential = False, those fields are not texts.
