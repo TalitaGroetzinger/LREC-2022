@@ -40,7 +40,8 @@ class BERTClassification(nn.Module):
 
     def forward(self, text, rank):
         # text = [batch size, sent len]
-        embedded = self.bert(text)[0]
+        with torch.no_grad():  
+           embedded = self.bert(text)[0]
         # embedded = [batch size, sent len, emb dim]
 
         if self.lstm:

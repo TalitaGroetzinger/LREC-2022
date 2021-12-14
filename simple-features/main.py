@@ -30,11 +30,11 @@ OUTPUT_DIM = 3
 N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
-N_EPOCHS = 10
+N_EPOCHS = 20
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-ranking-feat.pt"
+MODEL_NAME = "context-with-ranking-feat-no-finetuning-bert.pt"
 
 
 # set sequential = False, those fields are not texts.
