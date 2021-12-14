@@ -43,7 +43,8 @@ class BERTClassification(nn.Module):
 
     def forward(self, text):
         # text = [batch size, sent len]
-        embedded = self.bert(text)[0]
+        with torch.no_grad(): 
+            embedded = self.bert(text)[0]
         # embedded = [batch size, sent len, emb dim]
 
         if self.lstm:
@@ -97,8 +98,8 @@ class SimpleBERT(nn.Module):
     def forward(self, text):
         
         #text = [batch size, sent len]
-                
-        embedded = self.bert(text)[1]
+        with torch.no_grad():                 
+            embedded = self.bert(text)[1]
                 
         #embedded = [batch size, sent len, emb dim]
 
