@@ -67,12 +67,8 @@ ids.build_vocab()
 text.build_vocab()
 
 
-if USE_RANK: 
-    rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
-    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
-else: 
-    perplexity = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
-    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "perplexity": ("perplexity", perplexity)}
+rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
 def read_data(use_context):
     """
