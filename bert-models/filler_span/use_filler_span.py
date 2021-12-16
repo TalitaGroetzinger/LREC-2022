@@ -14,7 +14,7 @@ from dataset import (
     get_data_loader,
 )
 from helpers import train, evaluate, freeze_bert_layers
-from model import SimplePlausibilityClassifier
+from model import SimplePlausibilityClassifier, StartMarkerPlausibilityClassifier
 
 
 SEED = 1234
@@ -25,7 +25,7 @@ torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 # Dataset reading paths.
-PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep24.tsv"
+PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep23.tsv"
 PathToTrainData = "../../data/ClarificationTask_TrainData_Sep23.tsv"
 PathToDevLabels = "../../data/ClarificationTask_DevLabels_Dec12.tsv"
 PathToDevData = "../../data/ClarificationTask_DevData_Oct22a.tsv"
@@ -37,13 +37,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Model parameters
 OUTPUT_DIM = 3
-N_EPOCHS = 5
+N_EPOCHS = 10
 USE_CONTEXT = False
-FILLER_MARKERS = ("[F]", "[/F]")
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
+FILLER_MARKERS = None
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 LEARNING_RATE = 0.001
-CONSTRUCT_SENTENCE_PAIR = False
-USE_DROPOUT = False
+CONSTRUCT_SENTENCE_PAIR = True
+DROPOUT = 0.25
 
 
 def main():
@@ -76,8 +76,8 @@ def main():
         val_dataset, batch_size=16, collate_fn=batch_collator.collate
     )
 
-    model = SimplePlausibilityClassifier(
-        bert=bert, output_dim=OUTPUT_DIM, use_dropout=USE_DROPOUT
+    model = StartMarkerPlausibilityClassifier(
+        bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT
     )
 
     # add filler markers to tokenizer vocabulary if necessary
