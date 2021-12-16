@@ -8,7 +8,15 @@ import torch.optim as optim
 from transformers import BertTokenizer, BertModel
 from models import BERTClassification, SimpleBERT
 from feature_extraction import extract_features
+import random
+import numpy as np
 
+SEED = 1234
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 bert = BertModel.from_pretrained("bert-base-uncased")
 
@@ -33,7 +41,7 @@ N_EPOCHS = 20
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-ranking-feat-no-finetuning-bert.pt"
+MODEL_NAME = "context-with-ranking-feat-no-finetuning-bert-fixed-random-seed-seq-len-adamw.pt"
 
 
 # set sequential = False, those fields are not texts.
@@ -49,7 +57,6 @@ text = data.Field(
     lower=False,
     include_lengths=False,
     batch_first=True,
-    fix_length=MAX_SEQ_LEN,
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
@@ -178,7 +185,7 @@ def main():
         if param.requires_grad:
             print(name)
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.AdamW(model.parameters())
 
     criterion = CrossEntropyLoss()
 
