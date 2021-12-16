@@ -61,17 +61,13 @@ text = data.Field(
     unk_token=UNK_INDEX,
 )
 
-
-rank = data.Field(
-    sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
-)
-
 ids.build_vocab()
 # label.build_vocab()
 text.build_vocab()
 
-fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
+rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
 def read_data(use_context):
     """
@@ -110,11 +106,13 @@ def read_data(use_context):
             use_context=use_context,
         )
     
+
     print("extract features for train ..... ")
-    train_with_features_path = extract_features('train_df_with_perplexity.tsv') 
+    train_with_features_path = extract_features('train_df_with_perplexity.tsv', use_rank=USE_RANK) 
 
     print("extract features for dev")
-    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv')
+    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv', use_rank=USE_RANK)
+   
 
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
@@ -194,8 +192,8 @@ def main():
 
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
-        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device, USE_RANK)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, USE_RANK)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss

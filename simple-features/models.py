@@ -5,8 +5,7 @@ from torch.autograd import Variable
 
 class BERTClassification(nn.Module):
     def __init__(
-        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
-    ):
+        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True):
         super().__init__()
 
         self.bert = bert
@@ -16,7 +15,6 @@ class BERTClassification(nn.Module):
         self.num_features = num_features
 
         embedding_dim = bert.config.to_dict()["hidden_size"]
-
         if self.lstm:
             self.rnn = nn.LSTM(
                 embedding_dim,

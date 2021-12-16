@@ -4,7 +4,7 @@ import pdb
 from transformers.utils.dummy_pt_objects import LineByLineWithRefDataset 
 from data_preprocessing import merge_data
 from helpers import train, evaluate
-
+import
 import torch
 from torchtext.legacy import data
 from torch.nn import CrossEntropyLoss
@@ -14,7 +14,11 @@ from sklearn import svm
 import numpy as np
 
 from models import BERTClassification, SimpleBERT
-
+SEED = 1234 
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 bert = BertModel.from_pretrained("bert-base-uncased")
 

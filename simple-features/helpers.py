@@ -15,7 +15,7 @@ def categorical_accuracy(preds, y):
     return acc
 
 
-def train(model, iterator, optimizer, criterion, device):
+def train(model, iterator, optimizer, criterion, device, USE_RANK):
     epoch_loss = 0
     epoch_acc = 0
 
@@ -24,7 +24,10 @@ def train(model, iterator, optimizer, criterion, device):
     for batch in iterator:
         optimizer.zero_grad()
 
-        ranking = batch.rank.type(torch.LongTensor)
+        if USE_RANK: 
+            ranking = batch.rank.type(torch.LongTensor)
+        else: 
+            ranking = batch.perplexity
         predictions = model(batch.text.to(device), ranking.to(device)).squeeze(1)
 
         label = batch.label.type(torch.LongTensor)
@@ -43,7 +46,7 @@ def train(model, iterator, optimizer, criterion, device):
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
 
 
-def evaluate(model, iterator, criterion, device):
+def evaluate(model, iterator, criterion, device, USE_RANK):
     epoch_loss = 0
     epoch_acc = 0
 
@@ -52,7 +55,11 @@ def evaluate(model, iterator, criterion, device):
     with torch.no_grad():
 
         for batch in iterator:
-            ranking = batch.rank.type(torch.LongTensor)
+            if USE_RANK: 
+                ranking = batch.rank.type(torch.LongTensor)
+            else: 
+                ranking = batch.perplexity
+
             predictions = model(batch.text.to(device), ranking.to(device)).squeeze(1)
             predictions = predictions.to(device)
             label = batch.label.type(torch.LongTensor)
