@@ -43,7 +43,7 @@ MODEL_NAME = "baseline-model.pt"
 
 
 # set sequential = False, those fields are not texts.
-ids = data.Field()
+ids = data.RawField()
 label = data.Field(
     sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
 )
@@ -59,8 +59,7 @@ text = data.Field(
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
-ids.build_vocab()
-# label.build_vocab()
+
 text.build_vocab()
 
 fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label)}
