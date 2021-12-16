@@ -1,6 +1,7 @@
 from data_preprocessing import merge_data
 from helpers import train, evaluate
-
+import numpy as np
+import random
 import torch
 from torchtext.legacy import data
 from torch.nn import CrossEntropyLoss
@@ -8,6 +9,12 @@ import torch.optim as optim
 from transformers import BertTokenizer, BertModel
 from models import BERTClassification, SimpleBERT
 
+SEED = 1234
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 bert = BertModel.from_pretrained("bert-base-uncased")
 
@@ -32,10 +39,11 @@ N_EPOCHS = 10
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+MODEL_NAME = "baseline-model.pt"
 
 
 # set sequential = False, those fields are not texts.
-ids = data.Field()
+ids = data.RawField()
 label = data.Field(
     sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
 )
@@ -51,8 +59,7 @@ text = data.Field(
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
-ids.build_vocab()
-# label.build_vocab()
+
 text.build_vocab()
 
 fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label)}
@@ -146,8 +153,7 @@ def main():
     #                        BIDIRECTIONAL,
     #                        DROPOUT)
     
-    # but remember that the hidden dim is not used here XD. 
-    model = SimpleBERT(bert, HIDDEN_DIM, OUTPUT_DIM)
+    model = SimpleBERT(bert, OUTPUT_DIM)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
@@ -170,11 +176,11 @@ def main():
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
         train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), "baseline-model.pt")
+            torch.save(model.state_dict(), MODEL_NAME)
 
         print("Epoch: {0}".format(epoch))
         print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
