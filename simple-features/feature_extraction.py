@@ -22,10 +22,6 @@ def get_perplexity(sentence_with_filler):
 def get_rows_with_same_id(row): 
     return row.split("_")[0]
 
-def group_perplexity(group, perplexity): 
-    pdb.set_trace()
-
-
 
 def extract_features(path_to_df, use_rank): 
     df = pd.read_csv(path_to_df, sep='\t')

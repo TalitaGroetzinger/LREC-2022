@@ -16,16 +16,19 @@ def categorical_accuracy(preds, y, ids, eval):
     predictions_list = [pred[0] for pred in top_pred.tolist()]
     y_gold = y.tolist()
     if eval: 
-   	instance_ids_for_tsv_file = []
-    	preds_for_tsv_file = []
-    	y_gold_for_tsv_file = []
-    	for instance_id, pred, y_gold in zip(ids, predictions_list, y_gold):
-        	preds_for_tsv_file.append(pred)
-        	y_gold_for_tsv_file.append(y_gold) 
-        	instance_ids_for_tsv_file.append(instance_id)
-    	return acc, instance_ids_for_tsv_file, y_gold_for_tsv_file, preds_for_tsv_file
-    else:
-    	return acc
+        instance_ids_for_tsv_file = []
+        preds_for_tsv_file = []
+        y_gold_for_tsv_file = []
+        for instance_id, pred, y_gold in zip(ids, predictions_list, y_gold):
+            preds_for_tsv_file.append(pred)
+            y_gold_for_tsv_file.append(y_gold) 
+            instance_ids_for_tsv_file.append(instance_id)
+        return acc, instance_ids_for_tsv_file, y_gold_for_tsv_file, preds_for_tsv_file
+    else: 
+        return acc 
+
+
+
 
 
 def train(model, iterator, optimizer, criterion, device, USE_RANK):
