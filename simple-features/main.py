@@ -42,7 +42,7 @@ USE_RANK = True
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-ranking-feat-no-finetuning-bert-fixed-random-seed-seq-len-adamw.pt"
+MODEL_NAME = "context-with-perplexity.pt"
 
 
 # set sequential = False, those fields are not texts.
@@ -67,9 +67,13 @@ text = data.Field(
 # label.build_vocab()
 text.build_vocab()
 
+if USE_RANK: 
+    rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
+else: 
+    perplexity = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "perplexity": ("perplexity", perplexity)}
 
-rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
-fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
 
 def read_data(use_context):
     """
@@ -185,7 +189,7 @@ def main():
         if param.requires_grad:
             print(name)
 
-    optimizer = optim.AdamW(model.parameters())
+    optimizer = optim.Adam(model.parameters())
 
     criterion = CrossEntropyLoss()
 
