@@ -43,7 +43,7 @@ def train(model, iterator, optimizer, criterion, device):
         label = label.to(device)
         loss = criterion(predictions, label)
 
-        acc = categorical_accuracy(predictions, label, batch.ids)
+        acc = categorical_accuracy(predictions, label, batch.ids, eval=False)
 
         loss.backward()
 
