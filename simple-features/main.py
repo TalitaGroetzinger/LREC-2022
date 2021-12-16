@@ -38,6 +38,7 @@ N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
 N_EPOCHS = 20
+USE_RANK = True
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
@@ -45,7 +46,8 @@ MODEL_NAME = "context-with-ranking-feat-no-finetuning-bert-fixed-random-seed-seq
 
 
 # set sequential = False, those fields are not texts.
-ids = data.Field()
+ids = data.RawField()
+#ids = data.Field(sequential=False, use_vocab=False, batch_first=True)
 label = data.Field(
     sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
 )
@@ -61,7 +63,7 @@ text = data.Field(
     unk_token=UNK_INDEX,
 )
 
-ids.build_vocab()
+#ids.build_vocab()
 # label.build_vocab()
 text.build_vocab()
 
@@ -193,7 +195,7 @@ def main():
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
         train_loss, train_acc = train(model, train_iter, optimizer, criterion, device, USE_RANK)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, USE_RANK)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME, USE_RANK)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
