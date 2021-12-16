@@ -67,7 +67,7 @@ def evaluate(model, iterator, criterion, device, epoch_nr, model_name, USE_RANK)
     epoch_acc = 0
 
     model.eval()
-    df_for_evaluation_tsv = {"ids": [], "preds": [], "gold"}
+    df_for_evaluation_dict = {"ids": [], "preds": [], "gold": []}
     with torch.no_grad():
 
         for batch in iterator:
@@ -84,11 +84,12 @@ def evaluate(model, iterator, criterion, device, epoch_nr, model_name, USE_RANK)
             loss = criterion(predictions, label)
 
             acc,  instance_ids_for_tsv_file, y_gold_for_tsv_file, preds_for_tsv_file  = categorical_accuracy(predictions, label, batch.ids, eval=True)
-            df_for_evaluation_tsv['ids'] += instance_ids_for_tsv_file
-            df_for_evaluation_tsv['preds'] += preds_for_tsv_file 
-            df_for_evaluation_tsv['gold'] += y_gold_for_tsv_file
+            df_for_evaluation_dict['ids'] += instance_ids_for_tsv_file
+            df_for_evaluation_dict['preds'] += preds_for_tsv_file 
+            df_for_evaluation_dict['gold'] += y_gold_for_tsv_file
             epoch_loss += loss.item()
             epoch_acc += acc.item()
-    filename_for_pred_file = "{0}_{1}.tsv".format(model_name, epoch_nr)
-    df_for_evaluation_tsv.to_csv(filename_for_pred_file, sep='\t', index=False)
+    filename_for_pred_file = "{0}_{1}.tsv".format(model_name.replace('.pt', ''), epoch_nr)
+    df_for_evaluation = pd.DataFrame.from_dict(df_for_evaluation_dict)
+    df_for_evaluation.to_csv(filename_for_pred_file, sep='\t', index=False)
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
