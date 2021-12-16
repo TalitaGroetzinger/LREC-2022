@@ -1,4 +1,7 @@
 """A module for marking the filler span in the plausibility classification task."""
+import random
+
+import numpy as np
 import torch
 import torch.optim as optim
 from torch.nn import CrossEntropyLoss
@@ -10,8 +13,16 @@ from dataset import (
     PlausibilityDataset,
     get_data_loader,
 )
-from helpers import train, evaluate
+from helpers import train, evaluate, freeze_bert_layers
 from model import SimplePlausibilityClassifier
+
+
+SEED = 1234
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 # Dataset reading paths.
 PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep24.tsv"
@@ -20,6 +31,7 @@ PathToDevLabels = "../../data/ClarificationTask_DevLabels_Dec12.tsv"
 PathToDevData = "../../data/ClarificationTask_DevData_Oct22a.tsv"
 
 bert = BertModel.from_pretrained("bert-base-uncased")
+freeze_bert_layers(bert=bert, num_layers=11)
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,7 +41,7 @@ N_EPOCHS = 5
 USE_CONTEXT = False
 FILLER_MARKERS = ("[F]", "[/F]")
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.001
 CONSTRUCT_SENTENCE_PAIR = False
 USE_DROPOUT = False
 

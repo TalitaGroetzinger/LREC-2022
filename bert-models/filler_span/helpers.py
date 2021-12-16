@@ -1,10 +1,21 @@
 """A module for training and evaluating plausibility classifiers."""
 import torch
+import transformers
 
 
 def accuracy(logits: torch.Tensor, target: torch.Tensor) -> float:
     pred = logits.argmax(dim=1)
     return ((pred == target).sum() / len(pred)).float()
+
+
+def freeze_bert_layers(bert: transformers.BertModel, num_layers: int) -> None:
+    if num_layers < 0 or num_layers > 12:
+        print(f"{num_layers} is not a valid number of bert layers in the range from 0 to 12.")
+
+    modules = [bert.embeddings, *bert.encoder.layer[:num_layers]]
+    for module in modules:
+        for param in module.parameters():
+            param.requires_grad = False
 
 
 def train(model, data_loader, optimizer, criterion, device):
