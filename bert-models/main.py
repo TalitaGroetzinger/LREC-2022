@@ -1,6 +1,7 @@
 from data_preprocessing import merge_data
 from helpers import train, evaluate
-
+import numpy as np
+import random
 import torch
 from torchtext.legacy import data
 from torch.nn import CrossEntropyLoss
@@ -8,6 +9,12 @@ import torch.optim as optim
 from transformers import BertTokenizer, BertModel
 from models import BERTClassification, SimpleBERT
 
+SEED = 1234
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 bert = BertModel.from_pretrained("bert-base-uncased")
 
@@ -170,7 +177,7 @@ def main():
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
         train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
