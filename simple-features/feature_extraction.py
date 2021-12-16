@@ -1,11 +1,18 @@
 import pandas as pd 
 import pdb 
 import numpy as np 
-from perplexity import GPTScorer
-from transformers import OpenAIGPTTokenizer, OpenAIGPTLMHeadModel
+from perplexity import GPTScorer 
+from transformers import OpenAIGPTTokenizer, OpenAIGPTLMHeadModel, BertLMHeadModel, BertConfig, BertTokenizer
 
-tokenizer = OpenAIGPTTokenizer.from_pretrained('openai-gpt')
-model = OpenAIGPTLMHeadModel.from_pretrained('openai-gpt', return_dict=True).eval()
+#tokenizer = OpenAIGPTTokenizer.from_pretrained('openai-gpt')
+#model = OpenAIGPTLMHeadModel.from_pretrained('openai-gpt', return_dict=True).eval()
+
+model = BertLMHeadModel.from_pretrained
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+config = BertConfig.from_pretrained("bert-base-cased")
+config.is_decoder = True
+model = BertLMHeadModel.from_pretrained('bert-base-cased', config=config).eval()
 
 
 def filler_in_text(text_before, text_after,filler): 
@@ -23,11 +30,19 @@ def get_rows_with_same_id(row):
     return row.split("_")[0]
 
 
-def extract_features(path_to_df, use_rank): 
+def extract_features(path_to_df, use_rank, make_perplexity_file=True, split="train"): 
     df = pd.read_csv(path_to_df, sep='\t')
     
     # drop the unnamed column 
     df = df.drop(columns=['Unnamed: 0'])
+    pdb.set_trace()
+
+    if make_perplexity_file: 
+        df['perplexity'] = df['sents_with_filler'].apply(lambda x: get_perplexity(x))
+        print("compute the perplexity using bert....")        
+        df.to_csv("{0}_df_with_perplexity_bert.tsv".format(split), sep='\t', index=False) 
+        
+
 
     if use_rank: 
         df['group'] = df['ids'].apply(lambda x: get_rows_with_same_id(x))

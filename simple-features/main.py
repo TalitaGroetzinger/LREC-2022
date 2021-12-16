@@ -22,9 +22,9 @@ bert = BertModel.from_pretrained("bert-base-uncased")
 
 # Dataset reading paths.
 PathToTrainLabels = "../bert-models/data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../bert-models/data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../bert-models/data/ClarificationTask_DevLabels_Dec12.tsv"
-PathToDevData = "../bert-models/data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainData = "../bert-models/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../bert-models/ClarificationTask_DevLabels_Dec12.tsv"
+PathToDevData = "../bert-models/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -114,10 +114,10 @@ def read_data(use_context):
     
 
     print("extract features for train ..... ")
-    train_with_features_path = extract_features('train_df_with_perplexity.tsv', use_rank=USE_RANK) 
+    train_with_features_path = extract_features('train_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="train") 
 
     print("extract features for dev")
-    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv', use_rank=USE_RANK)
+    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="dev")
    
 
 
