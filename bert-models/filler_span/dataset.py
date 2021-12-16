@@ -15,7 +15,14 @@ class BatchCollation:
     def collate(self, batch: List[Dict]):
         """ """
         result = {}
-        keys = ["identifier", "text", "filler_start_index", "filler_end_index", "label"]
+        keys = [
+            "identifier",
+            "filler",
+            "text",
+            "filler_start_index",
+            "filler_end_index",
+            "label",
+        ]
 
         for key in keys:
             result[key] = []
@@ -25,7 +32,7 @@ class BatchCollation:
                 result[key].append(instance_dict[key])
 
         for key in keys:
-            if key not in ["identifier", "text"]:
+            if key not in ["identifier", "text", "filler"]:
                 result[key] = torch.tensor(result[key])
 
         if self.construct_sentence_pair:
@@ -103,6 +110,7 @@ class InstanceTransformation:
             "identifier": identifier,
             "text": text.replace("______", filler),
             "label": label,
+            "filler": filler,
             "filler_start_index": start_index,
             "filler_end_index": end_index,
         }
