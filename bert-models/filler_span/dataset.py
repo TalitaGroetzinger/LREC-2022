@@ -36,7 +36,6 @@ class BatchCollation:
                 result[key] = torch.tensor(result[key])
 
         if self.construct_sentence_pair:
-            pass
             result["text"] = self.tokenizer(
                 result["text"], result["filler"], return_tensors="pt", padding=True
             )
@@ -72,8 +71,8 @@ class InstanceTransformation:
         previous_context: str,
         follow_up_context: str,
     ) -> Dict:
-        start_index = None
-        end_index = None
+        start_index = 0
+        end_index = 0
 
         if self.sentence_pair:
             sent_with_filler, start_index, end_index = self.construct_sentence_pair(
