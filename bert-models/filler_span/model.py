@@ -11,9 +11,9 @@ class PlausibilityClassifier(torch.nn.Module):
     def __init__(self, bert: transformers.BertModel, output_dim: int, dropout: float):
         super().__init__()
         self.bert = bert
-        embedding_dim = bert.config.to_dict()["hidden_size"]
+        self.embedding_dim = bert.config.to_dict()["hidden_size"]
         self.output_dim = output_dim
-        self.out = torch.nn.Linear(embedding_dim, output_dim)
+        self.out = torch.nn.Linear(self.embedding_dim, output_dim)
         self.dropout = torch.nn.Dropout(dropout)
 
     def forward(self, batch: Dict):
@@ -49,3 +49,30 @@ class StartMarkerPlausibilityClassifier(PlausibilityClassifier):
         ]
         embedding = self.dropout(embedding)
         return self.out(embedding)
+
+
+class LSTMStartMarkerPlausibilityClassifier(PlausibilityClassifier):
+    """Simple classifier with a biLSTM that uses the hidden state of [CLS] as the sentence embedding."""
+
+    def __init__(self, bert: transformers.BertModel, output_dim: int, dropout: float, lstm_hidden_dim: int, lstm_layers: int):
+        super().__init__(bert=bert, output_dim=output_dim, dropout=dropout)
+        self.lstm = torch.nn.LSTM(
+                input_size=self.embedding_dim,
+                hidden_size=lstm_hidden_dim,
+                num_layers=lstm_layers,
+                bidirectional=True,
+                batch_first=True,
+                dropout=dropout,
+            )
+        self.out = torch.nn.Linear(2 * lstm_hidden_dim, output_dim)
+
+    def forward(self, batch: Dict):
+        bert_output = self.bert(**batch["text"])
+
+        # pooler output: last hidden state for [CLS]
+        tensor_range = torch.arange(len(batch["identifier"]))
+        embedding = bert_output.last_hidden_state[
+            tensor_range, batch["filler_start_index"]
+        ]
+        lstm_output, _ = self.lstm(embedding)
+        return self.out(lstm_output)

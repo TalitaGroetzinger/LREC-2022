@@ -14,7 +14,7 @@ from dataset import (
     get_data_loader,
 )
 from helpers import train, evaluate, freeze_bert_layers
-from model import SimplePlausibilityClassifier, StartMarkerPlausibilityClassifier
+from model import SimplePlausibilityClassifier, StartMarkerPlausibilityClassifier, LSTMStartMarkerPlausibilityClassifier
 
 
 SEED = 1234
@@ -44,6 +44,9 @@ ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 LEARNING_RATE = 0.001
 CONSTRUCT_SENTENCE_PAIR = True
 DROPOUT = 0.25
+USE_LSTM = True
+LSTM_LAYERS = 2
+LSTM_HIDDEN_DIMENSION = 256
 
 
 def main():
