@@ -42,7 +42,7 @@ USE_RANK = True
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "bert-tryout.pt"
+MODEL_NAME = "perplexity-ranking-linear-learning-rate-diff.pt"
 
 
 # set sequential = False, those fields are not texts.
@@ -188,7 +188,7 @@ def main():
         if param.requires_grad:
             print(name)
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), lr=0.1)
 
     criterion = CrossEntropyLoss()
 

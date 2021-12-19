@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
+import pdb 
 
 class BERTClassification(nn.Module):
     def __init__(
@@ -102,11 +102,12 @@ class SimpleBERT(nn.Module):
     def forward(self, text, rank):
         # text = [batch size, sent len]
         with torch.no_grad():
-            embedded = self.bert(text)[0]
+            embedded = self.bert(text)[1]
         # embedded = [batch size, sent len, emb dim]
 
         # hidden = [batch size, hid dim]
         ranking_var = rank.unsqueeze(1)
+        #pdb.set_trace()
         final_rep = torch.cat([embedded, ranking_var], 1)
         output = self.out(final_rep)
 
