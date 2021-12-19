@@ -1,13 +1,15 @@
 from data_preprocessing import merge_data
 from helpers import train, evaluate
-import numpy as np
-import random
+
 import torch
 from torchtext.legacy import data
 from torch.nn import CrossEntropyLoss
 import torch.optim as optim
 from transformers import BertTokenizer, BertModel
 from models import BERTClassification, SimpleBERT
+from feature_extraction import extract_features
+import random
+import numpy as np
 
 SEED = 1234
 
@@ -19,10 +21,10 @@ torch.backends.cudnn.deterministic = True
 bert = BertModel.from_pretrained("bert-base-uncased")
 
 # Dataset reading paths.
-PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../data/ClarificationTask_DevLabels_Dec12.tsv"
-PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "../bert-models/data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "../bert-models/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../bert-models/ClarificationTask_DevLabels_Dec12.tsv"
+PathToDevData = "../bert-models/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -35,15 +37,17 @@ OUTPUT_DIM = 3
 N_LAYERS = 2
 BIDIRECTIONAL = True
 DROPOUT = 0.25
-N_EPOCHS = 10
+N_EPOCHS = 20
+USE_RANK = True
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-sep.pt"
+MODEL_NAME = "context-with-perplexity.pt"
 
 
 # set sequential = False, those fields are not texts.
 ids = data.RawField()
+#ids = data.Field(sequential=False, use_vocab=False, batch_first=True)
 label = data.Field(
     sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
 )
@@ -55,14 +59,20 @@ text = data.Field(
     lower=False,
     include_lengths=False,
     batch_first=True,
-    fix_length=MAX_SEQ_LEN,
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
 )
 
+#ids.build_vocab()
+# label.build_vocab()
 text.build_vocab()
 
-fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label)}
+if USE_RANK: 
+    rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
+else: 
+    perplexity = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "perplexity": ("perplexity", perplexity)}
 
 
 def read_data(use_context):
@@ -101,14 +111,21 @@ def read_data(use_context):
             filler_markers=FILLER_MARKERS,
             use_context=use_context,
         )
-        train_df.to_csv("./data/train.csv", index=False)
-        development_df.to_csv("./data/dev.csv", index=False)
+    
+
+    print("extract features for train ..... ")
+    train_with_features_path = extract_features('train_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="train") 
+
+    print("extract features for dev")
+    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="dev")
+   
+
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
-        path="data",
-        train="train.csv",
-        validation="dev.csv",
-        test="dev.csv",
+        path=".",
+        train=train_with_features_path,
+        validation=dev_with_features_path,
+        test=dev_with_features_path,
         format="csv",
         fields=fields,
         skip_header=False,
@@ -139,21 +156,27 @@ def read_data(use_context):
     return train_iter, valid_iter, test_iter
 
 
+
+
 def main():
     # read data and return buckets
     # at the moment, do not use the test data.
-    train_iter, valid_iter, _ = read_data(use_context=USE_CONTEXT)
+    train_iter, valid_iter, test_iter = read_data(use_context=USE_CONTEXT)
+
 
     # check the parameters
     # initialize the model.
-    # model = BERTClassification(bert,
-    #                        HIDDEN_DIM,
-    #                        OUTPUT_DIM,
-    #                        N_LAYERS,
-    #                        BIDIRECTIONAL,
-    #                        DROPOUT)
+
+    #  self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
+
+    model = BERTClassification(bert,
+                            HIDDEN_DIM,
+                            OUTPUT_DIM,
+                            N_LAYERS,
+                            BIDIRECTIONAL,
+                            DROPOUT)
     
-    model = SimpleBERT(bert, OUTPUT_DIM)
+  
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
@@ -175,8 +198,8 @@ def main():
 
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
-        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME)
+        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device, USE_RANK)
+        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME, USE_RANK)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
@@ -185,6 +208,8 @@ def main():
         print("Epoch: {0}".format(epoch))
         print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
         print(f"\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%")
+
+
 
 
 main()

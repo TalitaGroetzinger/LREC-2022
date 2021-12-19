@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import pandas as pd
+from torch._C import set_num_threads
 
 
 def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=None):
@@ -19,6 +20,10 @@ def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=N
 
     ids = []
     instances = []
+    fillers = []
+    contexts_before = []
+    contexts_after = []
+    sents_with_filler = []
 
     for _, row in dataset.iterrows():
         for filler_index in range(1, 6):
@@ -34,6 +39,8 @@ def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=N
                 sent_with_filler = row["Sentence"].replace(
                     "______", row[f"Filler{filler_index}"]
                 )
+            
+            sents_with_filler.append(sent_with_filler)
 
             if use_context:
                 if row["Follow-up context"]:
@@ -55,10 +62,16 @@ def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=N
                     context.replace("(...)", "")
 
                 instances.append(context)
+              
             else:
                 instances.append(sent_with_filler)
 
-    return ids, instances
+            fillers.append(row[f"Filler{filler_index}"])
+            
+            contexts_before.append(row["Previous context"])
+            contexts_after.append(row["Follow-up context"])
+
+    return ids, instances, fillers, contexts_before, contexts_after, sents_with_filler
 
 
 def insert_filler_markers(
@@ -105,19 +118,24 @@ def merge_data(
     if this is empty, the filler span is not marked
     :return: a dataframe with the following columns: ids, version, label
     """
-    merged_df_dict = {"ids": [], "text": [], "label": []}
+    merged_df_dict = {"ids": [], "text": [], "fillers": [],  "label": [], "context_before": [], "context_after": [], "sents_with_filler": []}
     instances_df = pd.read_csv(path_to_instances, sep="\t")
 
     labels_df = pd.read_csv(path_to_labels, sep="\t", names=["Id", "Label"])
     label_dict = {row["Id"]: row["Label"] for _, row in labels_df.iterrows()}
 
-    ids, instances = retrieve_instances_from_dataset(
+    ids, instances, fillers, contexts_before, contexts_after, sents_with_filler = retrieve_instances_from_dataset(
         dataset=instances_df, use_context=use_context, filler_markers=filler_markers
     )
 
-    for id_elem, instance in zip(ids, instances):
+    for id_elem, instance, filler, context_before, context_after, sent_with_filler in zip(ids, instances, fillers, contexts_before, contexts_after, sents_with_filler):
         merged_df_dict["ids"].append(id_elem)
         merged_df_dict["text"].append(instance)
+        merged_df_dict["fillers"].append(filler)
+        merged_df_dict["context_before"].append(context_before)
+        merged_df_dict["context_after"].append(context_after)
+        merged_df_dict["sents_with_filler"].append(sent_with_filler)
+
         label = label_dict[id_elem]
 
         if label == "IMPLAUSIBLE":
