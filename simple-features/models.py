@@ -5,7 +5,7 @@ from torch.autograd import Variable
 
 class BERTClassification(nn.Module):
     def __init__(
-        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True):
+            self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True):
         super().__init__()
 
         self.bert = bert
@@ -40,17 +40,21 @@ class BERTClassification(nn.Module):
 
     def forward(self, text, rank):
         # text = [batch size, sent len]
-        with torch.no_grad():  
-           embedded = self.bert(text)[0]
+        with torch.no_grad():
+            embedded = self.bert(text)[0]
         # embedded = [batch size, sent len, emb dim]
 
         if self.lstm:
             if torch.cuda.is_available():
-                h_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)).cuda()
-                c_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim)).cuda()
+                h_0 = Variable(torch.randn(self.n_layers * 2,
+                               embedded.size()[0], self.hidden_dim)).cuda()
+                c_0 = Variable(torch.randn(self.n_layers * 2,
+                               embedded.size()[0], self.hidden_dim)).cuda()
             else:
-                h_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim))
-                c_0 = Variable(torch.randn(self.n_layers * 2, embedded.size()[0], self.hidden_dim))
+                h_0 = Variable(torch.randn(self.n_layers * 2,
+                               embedded.size()[0], self.hidden_dim))
+                c_0 = Variable(torch.randn(self.n_layers * 2,
+                               embedded.size()[0], self.hidden_dim))
 
             _, hidden = self.rnn(embedded, (h_0, c_0))
             hidden = self.dropout(
@@ -70,7 +74,7 @@ class BERTClassification(nn.Module):
 
         # hidden = [batch size, hid dim]
         ranking_var = rank.unsqueeze(1)
-        final_rep = torch.cat([hidden, ranking_var], 1) 
+        final_rep = torch.cat([hidden, ranking_var], 1)
         output = self.out(final_rep)
 
         # output = [batch size, out dim]
@@ -78,10 +82,9 @@ class BERTClassification(nn.Module):
         return output
 
 
-
-class SimpleBert(nn.Module):
+class SimpleBERT(nn.Module):
     def __init__(
-        self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True):
+            self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True):
         super().__init__()
 
         self.bert = bert
@@ -92,21 +95,19 @@ class SimpleBert(nn.Module):
 
         embedding_dim = bert.config.to_dict()["hidden_size"]
 
-
         self.out = nn.Linear((embedding_dim)+self.num_features, output_dim)
 
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, text, rank):
         # text = [batch size, sent len]
-        with torch.no_grad():  
-           embedded = self.bert(text)[0]
+        with torch.no_grad():
+            embedded = self.bert(text)[0]
         # embedded = [batch size, sent len, emb dim]
-
 
         # hidden = [batch size, hid dim]
         ranking_var = rank.unsqueeze(1)
-        final_rep = torch.cat([embedded, ranking_var], 1) 
+        final_rep = torch.cat([embedded, ranking_var], 1)
         output = self.out(final_rep)
 
         # output = [batch size, out dim]

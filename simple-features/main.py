@@ -63,16 +63,20 @@ text = data.Field(
     unk_token=UNK_INDEX,
 )
 
-#ids.build_vocab()
+# ids.build_vocab()
 # label.build_vocab()
 text.build_vocab()
 
-if USE_RANK: 
-    rank = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
-    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "rank": ("rank", rank)}
-else: 
-    perplexity = data.Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
-    fields = {"ids": ("ids", ids), "text": ("text", text), "label": ("label", label), "perplexity": ("perplexity", perplexity)}
+if USE_RANK:
+    rank = data.Field(sequential=False, use_vocab=False,
+                      batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text),
+              "label": ("label", label), "rank": ("rank", rank)}
+else:
+    perplexity = data.Field(sequential=False, use_vocab=False,
+                            batch_first=True, dtype=torch.float)
+    fields = {"ids": ("ids", ids), "text": ("text", text), "label": (
+        "label", label), "perplexity": ("perplexity", perplexity)}
 
 
 def read_data(use_context):
@@ -111,15 +115,14 @@ def read_data(use_context):
             filler_markers=FILLER_MARKERS,
             use_context=use_context,
         )
-    
 
     print("extract features for train ..... ")
-    train_with_features_path = extract_features('train_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="train") 
+    train_with_features_path = extract_features(
+        'train_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=False, split="train")
 
     print("extract features for dev")
-    dev_with_features_path = extract_features('dev_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=True, split="dev")
-   
-
+    dev_with_features_path = extract_features(
+        'dev_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=False, split="dev")
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
         path=".",
@@ -156,34 +159,30 @@ def read_data(use_context):
     return train_iter, valid_iter, test_iter
 
 
-
-
 def main():
     # read data and return buckets
     # at the moment, do not use the test data.
     train_iter, valid_iter, test_iter = read_data(use_context=USE_CONTEXT)
-
 
     # check the parameters
     # initialize the model.
 
     #  self, bert, hidden_dim, output_dim, n_layers, bidirectional, dropout, num_features=1, LSTM=True
 
-    model = BERTClassification(bert,
-                            HIDDEN_DIM,
-                            OUTPUT_DIM,
-                            N_LAYERS,
-                            BIDIRECTIONAL,
-                            DROPOUT)
-    
-  
+    model = SimpleBERT(bert,
+                       HIDDEN_DIM,
+                       OUTPUT_DIM,
+                       N_LAYERS,
+                       BIDIRECTIONAL,
+                       DROPOUT)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
-        tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
+        tokenizer.add_special_tokens(
+            {"additional_special_tokens": FILLER_MARKERS})
         bert.resize_token_embeddings(len(tokenizer))
 
-    # check the parameters 
+    # check the parameters
     print("training the following parameters .... ")
     for name, param in model.named_parameters():
         if param.requires_grad:
@@ -198,18 +197,20 @@ def main():
 
     best_valid_loss = float("inf")
     for epoch in range(N_EPOCHS):
-        train_loss, train_acc = train(model, train_iter, optimizer, criterion, device, USE_RANK)
-        valid_loss, valid_acc = evaluate(model, valid_iter, criterion, device, epoch, MODEL_NAME, USE_RANK)
+        train_loss, train_acc = train(
+            model, train_iter, optimizer, criterion, device, USE_RANK)
+        valid_loss, valid_acc = evaluate(
+            model, valid_iter, criterion, device, epoch, MODEL_NAME, USE_RANK)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), MODEL_NAME)
 
         print("Epoch: {0}".format(epoch))
-        print(f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
-        print(f"\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%")
-
-
+        print(
+            f"\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc*100:.2f}%")
+        print(
+            f"\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%")
 
 
 main()
