@@ -22,9 +22,9 @@ bert = BertModel.from_pretrained("bert-base-uncased")
 
 # Dataset reading paths.
 PathToTrainLabels = "../bert-models/data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../bert-models/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../bert-models/ClarificationTask_DevLabels_Dec12.tsv"
-PathToDevData = "../bert-models/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainData = "../bert-models/data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../bert-models/data/ClarificationTask_DevLabels_Dec12.tsv"
+PathToDevData = "../bert-models/data/ClarificationTask_DevData_Oct22a.tsv"
 
 # Model parameters
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -42,7 +42,7 @@ USE_RANK = True
 USE_CONTEXT = True
 FILLER_MARKERS = None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "context-with-perplexity.pt"
+MODEL_NAME = "bert-tryout.pt"
 
 
 # set sequential = False, those fields are not texts.

@@ -35,7 +35,6 @@ def extract_features(path_to_df, use_rank, make_perplexity_file=True, split="tra
     
     # drop the unnamed column 
     df = df.drop(columns=['Unnamed: 0'])
-    pdb.set_trace()
 
     if make_perplexity_file: 
         df['perplexity'] = df['sents_with_filler'].apply(lambda x: get_perplexity(x))
