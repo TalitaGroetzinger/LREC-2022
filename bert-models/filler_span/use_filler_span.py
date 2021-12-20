@@ -14,8 +14,7 @@ from dataset import (
     get_data_loader,
 )
 from helpers import train, evaluate, freeze_bert_layers
-from model import SimplePlausibilityClassifier, StartMarkerPlausibilityClassifier, LSTMStartMarkerPlausibilityClassifier
-
+from model import StartMarkerPlausibilityClassifier, DualInputPlausibilityClassifier
 
 SEED = 1234
 
@@ -43,17 +42,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 OUTPUT_DIM = 3
 N_EPOCHS = 10
 USE_CONTEXT = True
-#FILLER_MARKERS = None
-FILLER_MARKERS = ("[F]", "[/F]")
-#FILLER_MARKERS = ("$", "$")
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
-LEARNING_RATE = 0.01
+FILLER_MARKERS = False
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+LEARNING_RATE = 0.001
 CONSTRUCT_SENTENCE_PAIR = False
-START_MARKER = True
+START_MARKER = False
 DROPOUT = 0.25
-USE_LSTM = True
-LSTM_LAYERS = 2
-LSTM_HIDDEN_DIMENSION = 256
 
 print(f"Epochs: {N_EPOCHS}")
 print(f"Learning rate: {LEARNING_RATE}")
@@ -63,7 +57,6 @@ print(f"Filler markers: {FILLER_MARKERS}")
 print(f"Add filler markers to special tokens: {ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS}")
 print(f"Start marker: {START_MARKER}")
 print(f"Sentence pair: {CONSTRUCT_SENTENCE_PAIR}")
-print(f"LSTM: {USE_LSTM} -> layers {LSTM_LAYERS} and hidden dim {LSTM_HIDDEN_DIMENSION}")
 
 
 def main():
@@ -97,12 +90,9 @@ def main():
     )
 
     if START_MARKER:
-        if USE_LSTM:
-            model = LSTMStartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT, lstm_layers=LSTM_LAYERS, lstm_hidden_dim=LSTM_HIDDEN_DIMENSION)
-        else:
-            model = StartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+        model = StartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
     else:
-        model = SimplePlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+        model = DualInputPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
