@@ -27,6 +27,7 @@ def train(model, data_loader, optimizer, criterion, device):
 
     for batch in data_loader:
         batch["text"] = batch["text"].to(device)
+        batch["filler"] = batch["filler"].to(device)
         batch["filler_start_index"] = batch["filler_start_index"].to(device)
         batch["filler_end_index"] = batch["filler_end_index"].to(device)
         batch["label"] = batch["label"].to(device)
@@ -55,6 +56,7 @@ def evaluate(model, data_loader, criterion, device):
     with torch.no_grad():
         for batch in data_loader:
             batch["text"] = batch["text"].to(device)
+            batch["filler"] = batch["filler"].to(device)
             batch["filler_start_index"] = batch["filler_start_index"].to(device)
             batch["filler_end_index"] = batch["filler_end_index"].to(device)
             batch["label"] = batch["label"].to(device)

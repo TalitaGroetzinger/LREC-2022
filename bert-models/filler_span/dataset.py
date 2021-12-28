@@ -43,7 +43,9 @@ class BatchCollation:
             result["text"] = self.tokenizer(
                 text=result["text"], return_tensors="pt", padding=True
             )
-
+        result["filler"] = self.tokenizer(
+                text=result["filler"], return_tensors="pt", padding=True
+        )
         return result
 
 

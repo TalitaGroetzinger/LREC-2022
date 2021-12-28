@@ -14,7 +14,7 @@ from dataset import (
     get_data_loader,
 )
 from helpers import train, evaluate, freeze_bert_layers
-from model import StartMarkerPlausibilityClassifier, DualInputPlausibilityClassifier
+from model import StartMarkerPlausibilityClassifier, DualInputPlausibilityClassifier, TwistedPlausibilityClassifier
 
 SEED = 1234
 
@@ -30,7 +30,7 @@ PathToDevLabels = "../../data/ClarificationTask_DevLabels_Dec12.tsv"
 PathToDevData = "../../data/ClarificationTask_DevData_Oct22a.tsv"
 
 print("SETTINGS")
-NUM_FREEZED_LAYERS = 12
+NUM_FREEZED_LAYERS = 11
 bert = BertModel.from_pretrained("bert-base-uncased")
 freeze_bert_layers(bert=bert, num_layers=NUM_FREEZED_LAYERS)
 print(f"Freeze the first {NUM_FREEZED_LAYERS} bert layers") 
@@ -41,13 +41,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Model parameters
 OUTPUT_DIM = 3
 N_EPOCHS = 10
-USE_CONTEXT = True
-FILLER_MARKERS = False
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+USE_CONTEXT = False
+FILLER_MARKERS = ("[F]", "[/F]")
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
 LEARNING_RATE = 0.001
 CONSTRUCT_SENTENCE_PAIR = False
 START_MARKER = False
-DROPOUT = 0.25
+DROPOUT = 0.5
 
 print(f"Epochs: {N_EPOCHS}")
 print(f"Learning rate: {LEARNING_RATE}")
@@ -90,9 +90,12 @@ def main():
     )
 
     if START_MARKER:
+        print("Start marker model!")
         model = StartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
     else:
+        print("Dual input model!")
         model = DualInputPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+        # model = TwistedPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
