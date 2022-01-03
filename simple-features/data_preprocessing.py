@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import pandas as pd
 from torch._C import set_num_threads
-
+import pdb 
 
 def retrieve_instances_from_dataset(dataset, use_context: bool, filler_markers=None):
     """Retrieve sentences with insertions from dataset.
@@ -85,25 +85,11 @@ def insert_filler_markers(
     example: ("[F]", "[/F]") -> "This is a [F] really simple [/F] example."
     :return: sentence str with filler span surrounded by filler markers
     """
-    sentence_tokens: List[str] = sentence.split()
 
-    try:
-        blank_index = sentence_tokens.index("______")
-
-        if type(filler_markers) != tuple or len(filler_markers) != 2:
-            raise ValueError(
-                f"Special tokens {filler_markers} not valid. "
-                f"Must be a tuple of two strs: (start marker, end marker)."
-            )
-
-        sentence_tokens[blank_index] = filler_markers[1]
-        sentence_tokens.insert(blank_index, filler)
-        sentence_tokens.insert(blank_index, filler_markers[0])
-
-        return " ".join(sentence_tokens)
-
-    except ValueError:
-        raise ValueError(f"Sentence {sentence} does not contain blank.")
+    filler_with_marker = "{0} {1} {2}".format(filler_markers[0], filler, filler_markers[1])
+    sentence = sentence.replace("______", filler_with_marker)
+    pdb.set_trace()
+    return sentence
 
 
 def merge_data(
