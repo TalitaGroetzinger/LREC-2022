@@ -88,7 +88,6 @@ def insert_filler_markers(
 
     filler_with_marker = "{0} {1} {2}".format(filler_markers[0], filler, filler_markers[1])
     sentence = sentence.replace("______", filler_with_marker)
-    pdb.set_trace()
     return sentence
 
 
