@@ -107,3 +107,18 @@ def freeze_bert_layers(bert, num_layers):
     for module in modules:
         for param in module.parameters():
             param.requires_grad = False
+
+def insert_filler_markers(sentence, filler, filler_markers): 
+    """Insert marker token at the start and at the end of the filler span in the sentence.
+
+    :param sentence: sentence str with "______" blank where the filler should be inserted
+    :param filler: filler str
+    :param filler_markers: tuple with start and end marker strs for filler span
+    example: ("[F]", "[/F]") -> "This is a [F] really simple [/F] example."
+    :return: the sentence str with filler span surrounded by filler markers
+    """
+    if "______" not in sentence:
+        raise ValueError(f"Sentence {sentence} does not contain blank.")
+
+    insertion = f" {filler_markers[0]} {filler} {filler_markers[1]} "
+    return sentence.replace("______", insertion)

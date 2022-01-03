@@ -30,9 +30,13 @@ def get_rows_with_same_id(row):
     return row.split("_")[0]
 
 
-def extract_features(path_to_df, use_rank, make_perplexity_file=True, split="train"): 
+def extract_features(path_to_df, path_to_other_df, use_rank, make_perplexity_file=True, split="train"): 
+
+    # read the dataframe with the perplexity features 
     df = pd.read_csv(path_to_df, sep='\t')
-    
+    df_processed = pd.read_csv(path_to_other_df)
+    df['text'] = df_processed['text']
+    pdb.set_trace()
     # drop the unnamed column 
     df = df.drop(columns=['Unnamed: 0'])
 

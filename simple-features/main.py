@@ -44,9 +44,14 @@ DROPOUT = 0.5
 N_EPOCHS = 10
 LEARNING_RATE = 0.0001
 
-FILLER_MARKERS =  None
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
+
+FILLER_MARKERS = ("[F]", "[/F]")
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
 MODEL_NAME = "perplexity-ranking-linear-anna.pt"
+
+if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
+    tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
+    bert.resize_token_embeddings(len(tokenizer))
 
 
 # set sequential = False, those fields are not texts.
@@ -122,11 +127,11 @@ def read_data(use_context):
 
     print("extract features for train ..... ")
     train_with_features_path = extract_features(
-        'train_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=False, split="train")
+        'train_df_with_perplexity.tsv', './data/train.csv', use_rank=USE_RANK, make_perplexity_file=False, split="train")
 
     print("extract features for dev")
     dev_with_features_path = extract_features(
-        'dev_df_with_perplexity.tsv', use_rank=USE_RANK, make_perplexity_file=False, split="dev")
+        'dev_df_with_perplexity.tsv', './data/dev.csv', use_rank=USE_RANK, make_perplexity_file=False, split="dev")
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
         path=".",
