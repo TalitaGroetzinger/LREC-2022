@@ -46,7 +46,7 @@ N_EPOCHS = 10
 
 FILLER_MARKERS = ("[F]", "[/F]")
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
-MODEL_NAME = "perplexity-ranking-linear-anna-no-sep.pt"
+MODEL_NAME = "perplexity-ranking-linear-fillers.pt"
 
 if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
     tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
@@ -69,7 +69,7 @@ text = data.Field(
     batch_first=True,
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
-    fix_length=MAX_SEQ_LEN
+    fix_length=MAX_SEQ_LEN, 
 )
 
 # ids.build_vocab()
