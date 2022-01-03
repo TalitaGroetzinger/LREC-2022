@@ -45,9 +45,9 @@ N_EPOCHS = 10
 LEARNING_RATE = 0.0001
 
 
-FILLER_MARKERS = ("[F]", "[/F]")
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
-MODEL_NAME = "perplexity-ranking-linear-anna.pt"
+FILLER_MARKERS = None
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = None
+MODEL_NAME = "perplexity-ranking-linear-anna-no-sep.pt"
 
 if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
     tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
