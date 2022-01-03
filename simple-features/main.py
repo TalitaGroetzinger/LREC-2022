@@ -38,11 +38,10 @@ N_LAYERS = 2
 BIDIRECTIONAL = True
 USE_RANK = True
 USE_CONTEXT = True
-NUM_FROZEN_BERT_LAYERS = 11
+NUM_FROZEN_BERT_LAYERS = 12
 OUTPUT_DIM = 3
-DROPOUT = 0.5
+DROPOUT = 0.25
 N_EPOCHS = 10
-LEARNING_RATE = 0.0001
 
 
 FILLER_MARKERS = ("[F]", "[/F]")
@@ -70,6 +69,7 @@ text = data.Field(
     batch_first=True,
     pad_token=PAD_INDEX,
     unk_token=UNK_INDEX,
+    fix_length=MAX_SEQ_LEN
 )
 
 # ids.build_vocab()
@@ -195,7 +195,7 @@ def main():
     print("freezing parameters .... ")
     freeze_bert_layers(bert=bert, num_layers=NUM_FROZEN_BERT_LAYERS)
 
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters())
 
     criterion = CrossEntropyLoss()
 
