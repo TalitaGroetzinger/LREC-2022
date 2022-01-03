@@ -93,3 +93,17 @@ def evaluate(model, iterator, criterion, device, epoch_nr, model_name, USE_RANK)
     df_for_evaluation = pd.DataFrame.from_dict(df_for_evaluation_dict)
     df_for_evaluation.to_csv(filename_for_pred_file, sep='\t', index=False)
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
+
+def freeze_bert_layers(bert, num_layers):
+    """Freeze the first num_layers BERT layers.
+
+    :param bert: transformers BertModel
+    :param num_layers: int number of layers to freeze (between 0 and 12)
+    """
+    if num_layers < 0 or num_layers > 12:
+        print(f"{num_layers} is not a valid number of bert layers in the range from 0 to 12.")
+
+    modules = [bert.embeddings, *bert.encoder.layer[:num_layers]]
+    for module in modules:
+        for param in module.parameters():
+            param.requires_grad = False

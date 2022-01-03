@@ -1,5 +1,5 @@
 from data_preprocessing import merge_data
-from helpers import train, evaluate
+from helpers import train, evaluate, freeze_bert_layers
 
 import torch
 from torchtext.legacy import data
@@ -36,13 +36,17 @@ HIDDEN_DIM = 256
 OUTPUT_DIM = 3
 N_LAYERS = 2
 BIDIRECTIONAL = True
-DROPOUT = 0.25
-N_EPOCHS = 20
 USE_RANK = True
 USE_CONTEXT = True
-FILLER_MARKERS = None
+NUM_FROZEN_BERT_LAYERS = 11
+OUTPUT_DIM = 3
+DROPOUT = 0.5
+N_EPOCHS = 10
+LEARNING_RATE = 0.0001
+
+FILLER_MARKERS =  None
 ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
-MODEL_NAME = "perplexity-ranking-linear-learning-rate-diff.pt"
+MODEL_NAME = "perplexity-ranking-linear-anna.pt"
 
 
 # set sequential = False, those fields are not texts.
@@ -183,12 +187,10 @@ def main():
         bert.resize_token_embeddings(len(tokenizer))
 
     # check the parameters
-    print("training the following parameters .... ")
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(name)
+    print("freezing parameters .... ")
+    freeze_bert_layers(bert=bert, num_layers=NUM_FROZEN_BERT_LAYERS)
 
-    optimizer = optim.Adam(model.parameters(), lr=0.1)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     criterion = CrossEntropyLoss()
 
