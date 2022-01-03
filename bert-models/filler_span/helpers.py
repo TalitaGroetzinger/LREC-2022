@@ -1,10 +1,10 @@
 """A module for training and evaluating plausibility classifiers."""
+import pandas as pd
 import torch
 import transformers
 
 
-def accuracy(logits: torch.Tensor, target: torch.Tensor) -> float:
-    pred = logits.argmax(dim=1)
+def accuracy(pred: torch.Tensor, target: torch.Tensor) -> float:
     return ((pred == target).sum() / len(pred)).float()
 
 
@@ -33,8 +33,9 @@ def train(model, data_loader, optimizer, criterion, device):
         batch["label"] = batch["label"].to(device)
 
         logits = model(batch)
+        pred = logits.argmax(dim=1)
         loss = criterion(logits, batch["label"])
-        acc = accuracy(logits=logits, target=batch["label"])
+        acc = accuracy(pred=pred, target=batch["label"])
 
         loss.backward()
         optimizer.step()
@@ -46,12 +47,13 @@ def train(model, data_loader, optimizer, criterion, device):
     return epoch_loss / num_batches, epoch_acc / num_batches
 
 
-def evaluate(model, data_loader, criterion, device):
+def evaluate(model, data_loader, criterion, device, epoch, model_name):
     epoch_loss = 0
     epoch_acc = 0
 
     model.eval()
     num_batches = len(data_loader)
+    df_for_eval_dict = {"ids": [], "preds": [], "gold": []}
 
     with torch.no_grad():
         for batch in data_loader:
@@ -62,10 +64,19 @@ def evaluate(model, data_loader, criterion, device):
             batch["label"] = batch["label"].to(device)
 
             logits = model(batch)
+            pred = logits.argmax(dim=1)
             loss = criterion(logits, batch["label"])
-            acc = accuracy(logits=logits, target=batch["label"])
+            acc = accuracy(pred=pred, target=batch["label"])
+
+            df_for_eval_dict["ids"] += batch["identifier"]
+            df_for_eval_dict["preds"] += pred.tolist()
+            df_for_eval_dict["gold"] += batch["label"].tolist()
 
             epoch_loss += loss.item()
             epoch_acc += acc
+
+    filename = f"{model_name}_pred_{epoch}.tsv"
+    eval_df = pd.DataFrame.from_dict(df_for_eval_dict)
+    eval_df.to_csv(filename, sep="\t", index=False)
 
     return epoch_loss / num_batches, epoch_acc / num_batches
