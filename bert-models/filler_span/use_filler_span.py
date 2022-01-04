@@ -28,14 +28,18 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 # Dataset reading paths.
-# PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_binary.tsv"
 PathToTrainLabels = "../../data/ClarificationTask_TrainLabels_Sep23.tsv"
 PathToTrainData = "../../data/ClarificationTask_TrainData_Sep23.tsv"
 PathToDevLabels = "../../data/ClarificationTask_DevLabels_Dec12.tsv"
-# PathToDevLabels = "../../data/ClarificationTask_DevLabels_binary.tsv"
 PathToDevData = "../../data/ClarificationTask_DevData_Oct22b.tsv"
+PathToTestLabels = "../../data/ClarificationTask_TestLabels_Dec29.tsv"
+PathToTestData = "../../data/ClarificationTask_TestData_Dec29a.tsv"
 
-MODEL_NAME = "sentence_pair_filler_marker"
+
+TESTING = True
+LOAD_MODEL = "./models/bert_linear_vanilla.pt"
+
+MODEL_NAME = "test_bert_linear_vanilla"
 logging.basicConfig(filename=f"log_{MODEL_NAME}.log", level=logging.INFO)
 logging.info(f"Log for {MODEL_NAME}")
 
@@ -52,14 +56,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 OUTPUT_DIM = 3
 N_EPOCHS = 10
 USE_CONTEXT = True
-FILLER_MARKERS = ("[F]", "[/F]")
-ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = True
+# FILLER_MARKERS = ("[F]", "[/F]")
+FILLER_MARKERS = False
+ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS = False
 LEARNING_RATE = 0.0001
-CONSTRUCT_SENTENCE_PAIR = True
+CONSTRUCT_SENTENCE_PAIR = False
 START_MARKER = False
 TWISTED = False
 DROPOUT = 0.5
 
+logging.info(f"Testing: {TESTING}")
 logging.info(f"Epochs: {N_EPOCHS}")
 logging.info(f"Learning rate: {LEARNING_RATE}")
 logging.info(f"Dropout rate: {DROPOUT}")
@@ -72,6 +78,61 @@ logging.info(f"Twisted: {TWISTED}")
 
 
 def main():
+    if TESTING:
+        test()
+    else:
+        train_dev()
+
+
+def test():
+    logging.info("TEST")
+    instance_transformation = InstanceTransformation(
+        tokenizer=tokenizer,
+        filler_markers=FILLER_MARKERS,
+        use_context=USE_CONTEXT,
+        construct_sentence_pair=CONSTRUCT_SENTENCE_PAIR,
+    )
+    batch_collator = BatchCollation(
+        tokenizer=tokenizer, construct_sentence_pair=CONSTRUCT_SENTENCE_PAIR
+    )
+    test_dataset = PlausibilityDataset(
+        instance_file=PathToTestData,
+        label_file=PathToTestLabels,
+        transformation=instance_transformation,
+    )
+    test_data_loader = get_data_loader(
+        test_dataset, batch_size=16, collate_fn=batch_collator.collate
+    )
+
+    if START_MARKER and not TWISTED:
+        logging.info("start marker model")
+        model = StartMarkerPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+    elif START_MARKER and TWISTED:
+        logging.info("twisted input model")
+        model = TwistedPlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+    else:
+        logging.info("simple model")
+        model = SimplePlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
+
+    # add filler markers to tokenizer vocabulary if necessary
+    if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
+        tokenizer.add_special_tokens({"additional_special_tokens": FILLER_MARKERS})
+        bert.resize_token_embeddings(len(tokenizer))
+
+    logging.info(f"Loading model state dict from {LOAD_MODEL}")
+    model.load_state_dict(torch.load(LOAD_MODEL, map_location=device))
+
+    criterion = CrossEntropyLoss()
+    model = model.to(device)
+    criterion = criterion.to(device)
+
+    _, test_acc = evaluate(model, test_data_loader, criterion, device, 0, MODEL_NAME)
+
+    logging.info(f"Test Acc: {test_acc*100:.2f}%")
+    print(f"Test Acc: {test_acc*100:.2f}%")
+
+
+def train_dev():
     instance_transformation = InstanceTransformation(
         tokenizer=tokenizer,
         filler_markers=FILLER_MARKERS,
@@ -109,7 +170,6 @@ def main():
     else:
         logging.info("simple model")
         model = SimplePlausibilityClassifier(bert=bert, output_dim=OUTPUT_DIM, dropout=DROPOUT)
-
 
     # add filler markers to tokenizer vocabulary if necessary
     if FILLER_MARKERS and ADD_FILLER_MARKERS_TO_SPECIAL_TOKENS:
