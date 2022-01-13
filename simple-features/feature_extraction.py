@@ -41,8 +41,12 @@ def extract_features(path_to_df, path_to_other_df, use_rank, make_perplexity_fil
 
     if make_perplexity_file: 
         df['perplexity'] = df['sents_with_filler'].apply(lambda x: get_perplexity(x))
-        print("compute the perplexity using bert....")        
-        df.to_csv("{0}_df_with_perplexity_bert.tsv".format(split), sep='\t', index=False) 
+        print("compute the perplexity using GPT....")  
+
+        df.drop(columns=['fillers', 'context_before', 'context_after', 'sents_with_filler'])
+        df.to_csv("{0}_df_with_perplexity.tsv".format(split), sep='\t', index=False) 
+        path_to_new_df = "{0}_df_with_perplexity.tsv".format(split)
+        
         
 
 
