@@ -22,13 +22,13 @@ torch.backends.cudnn.deterministic = True
 bert = BertModel.from_pretrained("bert-base-uncased")
 
 # Dataset reading paths.
-PathToTrainLabels = "../bert-models/data/ClarificationTask_TrainLabels_Sep23.tsv"
-PathToTrainData = "../bert-models/data/ClarificationTask_TrainData_Sep23.tsv"
-PathToDevLabels = "../bert-models/data/ClarificationTask_DevLabels_Dec12.tsv"
-PathToDevData = "../bert-models/data/ClarificationTask_DevData_Oct22a.tsv"
+PathToTrainLabels = "../data/ClarificationTask_TrainLabels_Sep23.tsv"
+PathToTrainData = "../data/ClarificationTask_TrainData_Sep23.tsv"
+PathToDevLabels = "../data/ClarificationTask_DevLabels_Dec12.tsv"
+PathToDevData = "../data/ClarificationTask_DevData_Oct22a.tsv"
 
-PathToTestLabels = "../bert-models/data/ClarificationTask_TestLabels_Dec29a.tsv"
-PathToTestData = "../bert-models/data/ClarificationTask_TestData_Dec29a.tsv"
+PathToTestLabels = "../data/ClarificationTask_TestLabels_Dec29.tsv"
+PathToTestData = "../data/ClarificationTask_TestData_Dec29a.tsv"
 
 # Model parameters
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -150,7 +150,7 @@ def read_data(use_context):
 
     print("extract features for test")
     test_with_features_path = extract_features(
-        'dev_df_with_perplexity.tsv', './data/test.csv', use_rank=USE_RANK, make_perplexity_file=True, split="test")
+        'test_df_with_perplexity.tsv', './data/test.csv', use_rank=USE_RANK, make_perplexity_file=False, split="test")
 
 
 
